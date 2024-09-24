@@ -140,7 +140,7 @@ async function handleLoginUser(req, res) {
         if (isPasswordMatch) {
             const payload = { email: user.email, id: user._id, role: 'user' };
             const token = generateToken(payload);
-            res.json({ token });
+            res.json({ token, userId: user._id });
         } else {
             res.status(404).json({ message: 'Incorrect username OR password.' });
         }
@@ -187,11 +187,23 @@ async function handleLoginUser(req, res) {
 // }
 
 
+// Find user
+async function handleFindUser(req, res) {
+    try {
+        const user = await User.findById(req.params.id);
+        if (!user) { return res.status(404).json({ message: 'User not found' }); }
+        res.status(200).json(user);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+}
+
 
 
 module.exports = {
     handleRegisterUser,
     handleLoginUser,
     handleRegisterUsingLeftLink,
-    handleRegisterUsingRightLink
+    handleRegisterUsingRightLink,
+    handleFindUser,
 }
