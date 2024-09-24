@@ -200,10 +200,66 @@ async function handleFindUser(req, res) {
 
 
 
+
+// Get all sponsor's children
+async function handleGetSponsorChildrens(req, res) {
+    try {
+        // Find the sponsor user by ID
+        const sponsor = await User.findById(req.params.id);
+        if (!sponsor) {
+            return res.status(404).json({ message: 'Sponsor not found' });
+        }
+
+        // Array to hold all children
+        let children = [];
+
+        // Recursive function to get all children
+        await findAllChildren(sponsor, children);
+
+        // Return the list of all children
+        return res.status(200).json({ message: 'Children fetched successfully', children });
+    } catch (error) {
+        console.error(error);
+        return res.status(500).json({ message: 'Server error', error: error.message });
+    }
+}
+
+
+
+
+
+// Recursive function to find all children
+async function findAllChildren(user, children) {
+    if (!user) return;
+
+    // Add the current user 
+    children.push(user);
+
+    // Check for the left child
+    if (user.binaryPosition && user.binaryPosition.left) {
+        const leftChild = await User.findById(user.binaryPosition.left);
+        await findAllChildren(leftChild, children);                                                               // Recursively get left child's children
+    }
+
+    // Check for the right child
+    if (user.binaryPosition && user.binaryPosition.right) {
+        const rightChild = await User.findById(user.binaryPosition.rightChild);
+        await findAllChildren(rightChild, children);                                                               // Recursively get right child's children
+    }
+}
+
+
+
+
+
+
+
+
 module.exports = {
     handleRegisterUser,
     handleLoginUser,
     handleRegisterUsingLeftLink,
     handleRegisterUsingRightLink,
     handleFindUser,
+    handleGetSponsorChildrens
 }

@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 
 
-const {handleRegisterUser, handleLoginUser, handleRegisterUsingLeftLink, handleRegisterUsingRightLink, handleFindUser} = require('../controllers/authController');
+const {handleRegisterUser, handleLoginUser, handleRegisterUsingLeftLink, handleRegisterUsingRightLink, handleFindUser, handleGetSponsorChildrens} = require('../controllers/authController');
 
 
 router.post('/register', handleRegisterUser);
@@ -11,5 +11,6 @@ router.post('/registerRight', handleRegisterUsingRightLink);
 router.post('/login', handleLoginUser);
 router.get('/findUser/:id', handleFindUser);
 
+router.get('/getSponsorChildrens/:id', handleGetSponsorChildrens);
 
 module.exports = router;
