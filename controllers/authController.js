@@ -243,7 +243,7 @@ async function findAllChildren(user, children) {
 
     // Check for the right child
     if (user.binaryPosition && user.binaryPosition.right) {
-        const rightChild = await User.findById(user.binaryPosition.rightChild);
+        const rightChild = await User.findById(user.binaryPosition.right);
         await findAllChildren(rightChild, children);                                                               // Recursively get right child's children
     }
 }
