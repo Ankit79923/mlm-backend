@@ -237,24 +237,24 @@ async function handleGetSponsorChildrens(req, res) {
 
 // First version to get data
 // Recursive function to find all children
-async function findAllChildren(user, children) {
-    if (!user) return;
+// async function findAllChildren(user, children) {
+//     if (!user) return;
 
-    // Add the current user 
-    children.push(user);
+//     // Add the current user 
+//     children.push(user);
 
-    // Check for the left child
-    if (user.binaryPosition && user.binaryPosition.left) {
-        const leftChild = await User.findById(user.binaryPosition.left);
-        await findAllChildren(leftChild, children);                                                               // Recursively get left child's children
-    }
+//     // Check for the left child
+//     if (user.binaryPosition && user.binaryPosition.left) {
+//         const leftChild = await User.findById(user.binaryPosition.left);
+//         await findAllChildren(leftChild, children);                                                               // Recursively get left child's children
+//     }
 
-    // Check for the right child
-    if (user.binaryPosition && user.binaryPosition.right) {
-        const rightChild = await User.findById(user.binaryPosition.right);
-        await findAllChildren(rightChild, children);                                                               // Recursively get right child's children
-    }
-}
+//     // Check for the right child
+//     if (user.binaryPosition && user.binaryPosition.right) {
+//         const rightChild = await User.findById(user.binaryPosition.right);
+//         await findAllChildren(rightChild, children);                                                               // Recursively get right child's children
+//     }
+// }
 
 
 
@@ -314,6 +314,8 @@ async function findAllChildren2(user, children, level = 1) {
 //         }
 //     }
 // }
+
+
 
 async function findAllChildren3(user, children, level = 1) {
     // Base case: If the level exceeds 4 or if the user is null, return
