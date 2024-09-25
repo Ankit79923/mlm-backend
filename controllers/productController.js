@@ -81,15 +81,19 @@ async function handleViewProducts(req, res) {
 
 // Get product by ID
 async function handleGetProductById(req, res) {
-    try {
-        const product = await Product.findById({_id: req.params.id});
-        if (!product) {
-            return res.status(404).json({ error: 'Product not found' });
-        }
-        res.status(200).json({ message: 'Product fetched successfully', product: product });
-    } catch (error) {
-        res.status(500).json({ error: 'Error fetching product', message: error.message });
-    }
+    try { 
+        const product = await Product.findById(req.params.id); 
+        if (!product) { return res.status(404).send({ message: 'Product not found' }) }; 
+
+        // Construct the full image URL 
+        const imageUrl = `${req.protocol}://${req.get('host')}/public/images/uploads/${product.imageUrl}`; 
+
+        // Send response with product data and image URL 
+        res.send({ name: product.name, description: product.description, imageUrl: imageUrl }); 
+    } catch (error) { 
+        console.error(error); 
+        res.status(500).send({ message: 'Server error' }); 
+    } 
 }
 
 
