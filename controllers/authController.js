@@ -7,6 +7,11 @@ const { generateToken, verifyTokenMiddleware } = require('../middlewares/jwt');
 // Register user
 async function handleRegisterUser(req, res) {
     const { name, email, password, sponsorId } = req.body;
+    console.log(name);
+    console.log(email);
+    console.log(password);
+    console.log(sponsorId);
+    
 
     const count = await User.countDocuments();
     if (count === 0) {
@@ -32,7 +37,9 @@ async function handleRegisterUser(req, res) {
         if (!sponsor) {
             return res.status(400).json({ message: 'Invalid Sponsor ID' });
         }
-
+        console.log(sponsor);
+        console.log('Sponsor found');
+        
         // Creating sponsorID + leftLink + rightLink + user
         let mySponsorId = uuidv4().slice(0, 10);
         const leftRefferalLink = `${process.env.DOMAIN_URL}/registerLeft?sponsorId=${mySponsorId}`;
@@ -48,10 +55,13 @@ async function handleRegisterUser(req, res) {
         });
         await newUser.save();
 
+        console.log('Successfully registered new user');
+        
         // Attach to sponsor's binary tree
         await findPositionAndAttach(sponsor, newUser);
         res.status(201).json({ message: 'User registered successfully', user: newUser });
     } catch (error) {
+        console.log(error.message);
         res.status(500).json({ message: 'Server error', error });
     }
 }
@@ -212,13 +222,41 @@ async function handleGetSponsorChildrens(req, res) {
         let children = [];
 
         // Recursive function to get all children
-        await findAllChildren(sponsor, children);
+        await findAllChildren2(sponsor, children);
 
         // Return the list of all children
         return res.status(200).json({ message: 'Children fetched successfully', children });
     } catch (error) {
         console.error(error);
         return res.status(500).json({ message: 'Server error', error: error.message });
+    }
+}
+
+
+// Recursive function to find all children with depth level limit
+async function findAllChildren2(user, children, level = 1) {
+    if (!user || level > 4) return; // Stop recursion if level exceeds 4
+
+    // Add the current user at the current level
+    children.push(user);
+
+    // Check for level 2, 3, or 4 (left and right children at each level)
+    if (level < 4) {
+        // Handle the left child
+        if (user.binaryPosition && user.binaryPosition.left) {
+            const leftChild = await User.findById(user.binaryPosition.left);
+            await findAllChildren(leftChild, children, level + 1);  // Recursively get left child's children
+        } else {
+            children.push(null);  // Add null if no left child
+        }
+
+        // Handle the right child
+        if (user.binaryPosition && user.binaryPosition.right) {
+            const rightChild = await User.findById(user.binaryPosition.right);
+            await findAllChildren(rightChild, children, level + 1);  // Recursively get right child's children
+        } else {
+            children.push(null);  // Add null if no right child
+        }
     }
 }
 
