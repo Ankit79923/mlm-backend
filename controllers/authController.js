@@ -205,10 +205,8 @@ async function handleFindUser(req, res) {
 async function handleGetSponsorChildrens(req, res) {
     try {
         // Find the sponsor user by ID
-        const sponsor = await User.findById(req.params.id);
-        if (!sponsor) {
-            return res.status(404).json({ message: 'Sponsor not found' });
-        }
+        const sponsor = await User.findOne({_id: req.params.id});
+        if (!sponsor) { return res.status(404).json({ message: 'User not found' }); }
 
         // Array to hold all children
         let children = [];
