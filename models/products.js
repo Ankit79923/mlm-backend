@@ -20,8 +20,12 @@ const productSchema = new mongoose.Schema({
         type: Number,
         required: true
     },
-    imageUrl: {
+    imageName: {
         type: String,    // Name of picture saved with format, like, ankit.png
+        required: true
+    },
+    imageURL: {
+        type: String,    // URL of the uploaded image
         required: true
     },
     description: {

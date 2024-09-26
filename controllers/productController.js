@@ -8,13 +8,15 @@ const { generateToken, verifyTokenMiddleware } = require('../middlewares/jwt');
 // Add Product
 async function handleAddProduct(req, res) {
     try {
-        const { name, category, price, bvPoints, imageUrl, description, stock } = req.body;
+        const { name, category, price, bvPoints, description, stock } = req.body;
+        
         const newProduct = await Product.create({
             name,
             category,
             price,
             bvPoints,
-            imageUrl: req.file.filename,
+            imageName: req.file.filename,
+            imageURL: `${req.protocol}://${req.get('host')}/public/images/uploads/${req.file.filename}`,
             description,
             stock
         });
@@ -33,7 +35,8 @@ async function handleEditProduct(req, res) {
             new: true,          // Return the updated product
             runValidators: true // Validate fields while updating
         });
-        updatedProduct.imageUrl = req.file.filename;
+        updatedProduct.imageName = req.file.filename;
+        updatedProduct.imageURL = `${req.protocol}://${req.get('host')}/public/images/uploads/${req.file.filename}`;
         await updatedProduct.save();
 
         if (!updatedProduct) {
@@ -42,6 +45,9 @@ async function handleEditProduct(req, res) {
 
         res.status(200).json({ message: 'Product updated successfully', product: updatedProduct });
     } catch (error) {
+        console.log(error);
+        console.log(error.message);
+        
         res.status(500).json({ error: 'Error updating product' });
     }
 }
@@ -71,7 +77,7 @@ async function handleDeleteProduct(req, res) {
 // Get all products
 async function handleViewProducts(req, res) {
     try {
-        const products = await Product.find({});
+        const products = await Product.find({});    
         res.status(200).json({ message: 'Products fetched successfully', products: products });
     } catch (error) {
         res.status(500).json({ error: 'Error fetching products', message: error.message });
@@ -86,10 +92,10 @@ async function handleGetProductById(req, res) {
         if (!product) { return res.status(404).send({ message: 'Product not found' }) }; 
 
         // Construct the full image URL 
-        const imageUrl = `${req.protocol}://${req.get('host')}/public/images/uploads/${product.imageUrl}`; 
+        const imageURL = `${req.protocol}://${req.get('host')}/public/images/uploads/${product.imageUrl}`; 
 
         // Send response with product data and image URL 
-        res.send({ name: product.name, description: product.description, imageUrl: imageUrl }); 
+        res.send({ name: product.name, description: product.description, imageURL: imageURL }); 
     } catch (error) { 
         console.error(error); 
         res.status(500).send({ message: 'Server error' }); 

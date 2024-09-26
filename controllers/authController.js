@@ -268,16 +268,16 @@ async function handleFindUser(req, res) {
 // Get all sponsor's children with tree-like structure
 async function handleGetSponsorChildrens(req, res) {
     try {
-        // Find the sponsor user by ID
+        // Find sponsor
         const sponsor = await User.findOne({ _id: req.params.id });
         if (!sponsor) {
             return res.status(404).json({ message: 'User not found' });
         }
 
-        // Build the tree from the sponsor
+        // Build the tree
         const tree = await buildTree(sponsor);
 
-        // Return the tree structure in the desired format
+        // Return the tree
         return res.status(200).json(tree);
 
     } catch (error) {
@@ -287,10 +287,38 @@ async function handleGetSponsorChildrens(req, res) {
 }
 
 
-
+// Currently working with this code - This finds all the children, we don't want this.
 // Recursive function to build the binary tree structure
-async function buildTree(user) {
-    if (!user) return null;            // Base case: If no user, return null
+// async function buildTree(user) {
+//     if (!user) return null;            // Base case: If no user, return null
+
+//     const userNode = {
+//         _id: user._id,
+//         value: user.name, 
+//         mySponsorId: user.mySponsorId,
+//         leftChild: null,
+//         rightChild: null
+//     };
+
+//     // Find left and right children recursively
+//     if (user.binaryPosition && user.binaryPosition.left) {
+//         const leftChild = await User.findById(user.binaryPosition.left);
+//         userNode.leftChild = await buildTree(leftChild);
+//     }
+
+//     if (user.binaryPosition && user.binaryPosition.right) {
+//         const rightChild = await User.findById(user.binaryPosition.right);
+//         userNode.rightChild = await buildTree(rightChild);
+//     }
+
+//     return userNode;
+// }
+
+
+// Trying 
+// Recursive function to build the binary tree structure up to level 4
+async function buildTree(user, level = 1) {
+    if (!user || level > 4) return null; // Base case: If no user or level > 4, return null
 
     const userNode = {
         _id: user._id,
@@ -300,24 +328,21 @@ async function buildTree(user) {
         rightChild: null
     };
 
-    // Find left and right children recursively
-    if (user.binaryPosition && user.binaryPosition.left) {
-        const leftChild = await User.findById(user.binaryPosition.left);
-        userNode.leftChild = await buildTree(leftChild);
-    }
+    // Only fetch left and right children if the current level is less than 4
+    if (level < 4) {
+        if (user.binaryPosition && user.binaryPosition.left) {
+            const leftChild = await User.findById(user.binaryPosition.left);
+            userNode.leftChild = await buildTree(leftChild, level + 1);
+        }
 
-    if (user.binaryPosition && user.binaryPosition.right) {
-        const rightChild = await User.findById(user.binaryPosition.right);
-        userNode.rightChild = await buildTree(rightChild);
+        if (user.binaryPosition && user.binaryPosition.right) {
+            const rightChild = await User.findById(user.binaryPosition.right);
+            userNode.rightChild = await buildTree(rightChild, level + 1);
+        }
     }
 
     return userNode;
 }
-
-
-
-
-
 
 
 
