@@ -290,11 +290,12 @@ async function handleGetSponsorChildrens(req, res) {
 
 // Recursive function to build the binary tree structure
 async function buildTree(user) {
-    if (!user) return null; // Base case: If no user, return null
+    if (!user) return null;            // Base case: If no user, return null
 
     const userNode = {
         _id: user._id,
-        value: user.name, // Assuming `name` is used as the value
+        value: user.name, 
+        mySponsorId: user.mySponsorId,
         leftChild: null,
         rightChild: null
     };
