@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MLM Tree</title>
+    <style>
+        .tree {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+        }
+        .tree ul {
+            padding-top: 20px;
+            position: relative;
+            display: flex;
+            justify-content: center;
+        }
+        .tree ul::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 50%;
+            border-top: 1px solid #ccc;
+            width: 50%;
+            height: 20px;
+        }
+        .tree li {
+            list-style-type: none;
+            margin: 0 10px;
+            position: relative;
+            padding: 20px 5px 0 5px;
+            text-align: center;
+        }
+        .tree li::before, .tree li::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            border-top: 1px solid #ccc;
+            width: 50%;
+            height: 20px;
+        }
+        .tree li::before {
+            right: 50%;
+            border-right: 1px solid #ccc;
+        }
+        .tree li::after {
+            left: 50%;
+            border-left: 1px solid #ccc;
+        }
+        .tree li:only-child::before, .tree li:only-child::after {
+            display: none;
+        }
+        .tree li:only-child {
+            padding-top: 0;
+        }
+        .tree li a {
+            border: 1px solid #ccc;
+            padding: 10px;
+            text-decoration: none;
+            background-color: #f9f9f9;
+            color: #333;
+            border-radius: 5px;
+            display: inline-block;
+        }
+        .tree li a:hover {
+            background-color: #e1e1e1;
+        }
+    </style>
+</head>
+<body>
+    <div class="tree">
+        <ul>
+            <li>
+                <a href="#">{{ sponsor.name }} (Sponsor)</a>
+                <ul>
+                    <%- renderChildren(children, 0) %>
+                </ul>
+            </li>
+        </ul>
+    </div>
+
+    <script>
+        // Helper function to render children recursively
+        function renderChildren(children, index) {
+            if (index < children.length && children[index]) {
+                return `
+                    <li>
+                        <a href="#user_${children[index].id}">
+                            ${children[index].name}
+                        </a>
+                        <ul>
+                            ${renderChildren(children, index + 1)}
+                            ${renderChildren(children, index + 2)}
+                        </ul>
+                    </li>
+                `;
+            } else {
+                return '<li><a href="#">Empty</a></li>';
+            }
+        }
+    </script>
+</body>
+</html>

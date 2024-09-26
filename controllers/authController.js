@@ -210,23 +210,76 @@ async function handleFindUser(req, res) {
 
 
 
-
+// ---------------------------------------------------------------- PREVIOUS VERSION
 // Get all sponsor's children
+// async function handleGetSponsorChildrens(req, res) {
+//     try {
+//         // Find the sponsor user by ID
+//         const sponsor = await User.findOne({_id: req.params.id});
+//         if (!sponsor) { return res.status(404).json({ message: 'User not found' }); }
+
+//         // Array to hold all children
+//         let children = [];
+
+//         // Recursive function to get all children
+//         // await findAllChildren2(sponsor, children);
+//         await findAllChildren3(sponsor, children);
+
+//         // Return the list of all children
+//         return res.status(200).json({ message: 'Children fetched successfully', children });
+//     } catch (error) {
+//         console.error(error);
+//         return res.status(500).json({ message: 'Server error', error: error.message });
+//     }
+// }
+// ---------------------------------------------- recently Previously used functions
+// Recursive function to find all children
+// async function findAllChildren3(user, children, level = 1) {
+//     // Base case: If the level exceeds 4 or if the user is null, return
+//     if (level > 4) return;
+    
+//     // Add the current user or null if no user at this position
+//     children.push(user ? { id: user._id, name: user.name } : null);
+    
+//     if (user) {
+//         // Handle the left child
+//         let leftChild = null;
+//         if (user.binaryPosition && user.binaryPosition.left) {
+//             leftChild = await User.findById(user.binaryPosition.left);
+//         }
+//         await findAllChildren3(leftChild, children, level + 1);
+
+//         // Handle the right child
+//         let rightChild = null;
+//         if (user.binaryPosition && user.binaryPosition.right) {
+//             rightChild = await User.findById(user.binaryPosition.right);
+//         }
+//         await findAllChildren3(rightChild, children, level + 1);
+//     } else {
+//         // If user is null, still add two nulls for missing left and right children
+//         await findAllChildren3(null, children, level + 1);
+//         await findAllChildren3(null, children, level + 1);
+//     }
+// }
+
+
+
+// ---------------------------------------------------------------- NEW VERSION ----------------------------------------------------------------
+// Get all sponsor's children with tree-like structure
 async function handleGetSponsorChildrens(req, res) {
     try {
         // Find the sponsor user by ID
-        const sponsor = await User.findOne({_id: req.params.id});
-        if (!sponsor) { return res.status(404).json({ message: 'User not found' }); }
+        const sponsor = await User.findOne({ _id: req.params.id });
+        if (!sponsor) {
+            return res.status(404).json({ message: 'User not found' });
+        }
 
-        // Array to hold all children
-        let children = [];
+        // Build the tree from the sponsor
+        const tree = await buildTree(sponsor);
 
-        // Recursive function to get all children
-        // await findAllChildren2(sponsor, children);
-        await findAllChildren3(sponsor, children);
+        // Return the tree structure in the desired format
+        return res.status(200).json(tree);
 
-        // Return the list of all children
-        return res.status(200).json({ message: 'Children fetched successfully', children });
     } catch (error) {
         console.error(error);
         return res.status(500).json({ message: 'Server error', error: error.message });
@@ -235,115 +288,33 @@ async function handleGetSponsorChildrens(req, res) {
 
 
 
-// First version to get data
-// Recursive function to find all children
-// async function findAllChildren(user, children) {
-//     if (!user) return;
+// Recursive function to build the binary tree structure
+async function buildTree(user) {
+    if (!user) return null; // Base case: If no user, return null
 
-//     // Add the current user 
-//     children.push(user);
+    const userNode = {
+        _id: user._id,
+        value: user.name, // Assuming `name` is used as the value
+        leftChild: null,
+        rightChild: null
+    };
 
-//     // Check for the left child
-//     if (user.binaryPosition && user.binaryPosition.left) {
-//         const leftChild = await User.findById(user.binaryPosition.left);
-//         await findAllChildren(leftChild, children);                                                               // Recursively get left child's children
-//     }
-
-//     // Check for the right child
-//     if (user.binaryPosition && user.binaryPosition.right) {
-//         const rightChild = await User.findById(user.binaryPosition.right);
-//         await findAllChildren(rightChild, children);                                                               // Recursively get right child's children
-//     }
-// }
-
-
-
-// 2nd version to get data - WORKING GOOD
-// Recursive function to find all children with depth level limit
-async function findAllChildren2(user, children, level = 1) {
-    if (!user || level > 4) return; // Stop recursion if level exceeds 4
-
-    // Add the current user at the current level
-    children.push(user);
-
-    // Check for level 2, 3, or 4 (left and right children at each level)
-    if (level < 4) {
-        // Handle the left child
-        if (user.binaryPosition && user.binaryPosition.left) {
-            const leftChild = await User.findById(user.binaryPosition.left);
-            await findAllChildren2(leftChild, children, level + 1);  // Recursively get left child's children
-        } else {
-            children.push(null);  // Add null if no left child
-        }
-
-        // Handle the right child
-        if (user.binaryPosition && user.binaryPosition.right) {
-            const rightChild = await User.findById(user.binaryPosition.right);
-            await findAllChildren2(rightChild, children, level + 1);  // Recursively get right child's children
-        } else {
-            children.push(null);  // Add null if no right child
-        }
+    // Find left and right children recursively
+    if (user.binaryPosition && user.binaryPosition.left) {
+        const leftChild = await User.findById(user.binaryPosition.left);
+        userNode.leftChild = await buildTree(leftChild);
     }
+
+    if (user.binaryPosition && user.binaryPosition.right) {
+        const rightChild = await User.findById(user.binaryPosition.right);
+        userNode.rightChild = await buildTree(rightChild);
+    }
+
+    return userNode;
 }
 
 
 
-// 3rd version to get data: TESTING MODE
-// async function findAllChildren3(user, children, level = 1) {
-//     if (!user || level > 4) return; // Stop recursion if level exceeds 4
-    
-//     // Add the current user or null for missing children at the current level
-//     children.push(user ? { id: user._id, name: user.name } : null);
-
-//     // Check for level 2, 3, or 4 (left and right children at each level)
-//     if (level < 4) {
-//         // Handle the left child
-//         if (user && user.binaryPosition && user.binaryPosition.left) {
-//             const leftChild = await User.findById(user.binaryPosition.left);
-//             await findAllChildren2(leftChild, children, level + 1);  // Recursively get left child's children
-//         } else {
-//             children.push(null);  // Add null if no left child
-//         }
-
-//         // Handle the right child
-//         if (user && user.binaryPosition && user.binaryPosition.right) {
-//             const rightChild = await User.findById(user.binaryPosition.right);
-//             await findAllChildren2(rightChild, children, level + 1);  // Recursively get right child's children
-//         } else {
-//             children.push(null);  // Add null if no right child
-//         }
-//     }
-// }
-
-
-
-async function findAllChildren3(user, children, level = 1) {
-    // Base case: If the level exceeds 4 or if the user is null, return
-    if (level > 4) return;
-    
-    // Add the current user or null if no user at this position
-    children.push(user ? { id: user._id, name: user.name } : null);
-    
-    if (user) {
-        // Handle the left child
-        let leftChild = null;
-        if (user.binaryPosition && user.binaryPosition.left) {
-            leftChild = await User.findById(user.binaryPosition.left);
-        }
-        await findAllChildren3(leftChild, children, level + 1);
-
-        // Handle the right child
-        let rightChild = null;
-        if (user.binaryPosition && user.binaryPosition.right) {
-            rightChild = await User.findById(user.binaryPosition.right);
-        }
-        await findAllChildren3(rightChild, children, level + 1);
-    } else {
-        // If user is null, still add two nulls for missing left and right children
-        await findAllChildren3(null, children, level + 1);
-        await findAllChildren3(null, children, level + 1);
-    }
-}
 
 
 
@@ -356,5 +327,5 @@ module.exports = {
     handleRegisterUsingLeftLink,
     handleRegisterUsingRightLink,
     handleFindUser,
-    handleGetSponsorChildrens
+    handleGetSponsorChildrens,
 }

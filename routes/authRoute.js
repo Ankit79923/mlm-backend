@@ -12,5 +12,6 @@ router.post('/login', handleLoginUser);
 router.get('/findUser/:id', handleFindUser);
 
 router.get('/getSponsorChildrens/:id', handleGetSponsorChildrens);
+// router.get('/mlm-tree/:id', handleGetSponsorTree);
 
 module.exports = router;
