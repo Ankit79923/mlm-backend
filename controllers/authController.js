@@ -12,6 +12,9 @@ async function handleRegisterUser(req, res) {
     console.log(password);
     console.log(sponsorId);
     
+    // check if email already registered
+    let userFound = await User.findOne({ email: email });
+    if (userFound) { return res.status(404).json({ message: 'Email already registered' }); };
 
     const count = await User.countDocuments();
     if (count === 0) {
@@ -71,18 +74,24 @@ async function handleRegisterUser(req, res) {
 async function handleRegisterUsingLeftLink(req, res) {
     try {
         const sponsorId = req.query.sponsorId;
-        console.log(sponsorId);
+
+        // finding Sponsor
         const user = await User.findOne({ mySponsorId: sponsorId });
         if (!user) { return res.status(404).json({ message: 'Incorrect sponsorId' }); }
-        console.log(user);
-        console.log('user found successfully');
+        console.log('Sponsor found successfully');
+
+        // New user details
+        const { name, email, password } = req.body;
+
+        // check if email already registered
+        let userFound = await User.findOne({ email: email });
+        if (userFound) { return res.status(404).json({ message: 'Email already registered' }); };
 
 
         // Creating new user + sponsorID + leftLink + rightLink
         let mySponsorId = uuidv4().slice(0, 10);
         const leftRefferalLink = `${process.env.DOMAIN_URL}/registerLeft?sponsorId=${mySponsorId}`;
         const rightRefferalLink = `${process.env.DOMAIN_URL}/registerRight?sponsorId=${mySponsorId}`;
-        const { name, email, password } = req.body;
         const newUser = new User({
             name,
             email,
@@ -109,11 +118,18 @@ async function handleRegisterUsingRightLink(req, res) {
         const user = await User.findOne({ mySponsorId: sponsorId });
         if (!user) { return res.status(404).json({ message: 'Incorrect sponsorId' }); }
 
+        // New user details
+        const { name, email, password } = req.body;
+
+        // check if email already registered
+        let userFound = await User.findOne({ email: email });
+        if (userFound) { return res.status(404).json({ message: 'Email already registered' }); };
+
+
         // Creating new user + sponsorID + leftLink + rightLink
         let mySponsorId = uuidv4().slice(0, 10);
         const leftRefferalLink = `${process.env.DOMAIN_URL}/registerLeft?sponsorId=${mySponsorId}`;
         const rightRefferalLink = `${process.env.DOMAIN_URL}/registerRight?sponsorId=${mySponsorId}`;
-        const { name, email, password } = req.body;
         const newUser = new User({
             name,
             email,
@@ -137,16 +153,14 @@ async function handleRegisterUsingRightLink(req, res) {
 async function handleLoginUser(req, res) {
     try {
         const { email, password } = req.body;
-        
-        
         if (!email || !password) { return res.status(400).json({ message: 'Please provide email and password' }); }
 
+        // Check user exists OR not
         let user = await User.findOne({ email: email });
         if (!user) { return res.status(404).json({ message: 'User not found' }); }
         
 
         const isPasswordMatch = await user.comparePassword(password);
-        
         if (isPasswordMatch) {
             const payload = { email: user.email, id: user._id, role: 'user' };
             const token = generateToken(payload);

@@ -70,7 +70,7 @@ async function handleDeleteProduct(req, res) {
         const deletedProduct = await Product.findByIdAndDelete({ _id: req.params.id });
         if (!deletedProduct) {
             console.log("Can't delete product"); 
-            return res.status(404).json({ error: 'Product not found' });
+            return res.status(404).json({ message: 'Product not found' });
         }
 
         // Delete related wishlist items
