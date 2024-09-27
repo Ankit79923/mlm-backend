@@ -1,6 +1,7 @@
 const User = require('../models/users');
 const Product = require('../models/products');
 const Wishlist = require('../models/wishlists');
+const Cart = require('../models/cart');
 const { generateToken, verifyTokenMiddleware } = require('../middlewares/jwt');
 
 
@@ -165,6 +166,66 @@ async function handleAddProductToWishlist(req, res) {
 
 
 
+async function handleAddProductToCart(req, res) {
+    try {
+        // Get userId from request and productId from body
+        // const email = req.userPayload.email;
+        // const userFound = await User.findOne({ email: email });
+
+        console.log('Inside controller');
+        const userId = req.userPayload.id;
+        const productId = req.body.productId;
+        console.log(userId, productId);
+        
+        if (!userId) { return res.status(400).json({ message: 'User ID is not recieved from userPayload.' }); }
+        if (!productId) { return res.status(400).json({ message: 'Product ID is required' }); }
+
+
+        // Find user
+        const user = await User.findOne({_id: userId});
+        if (!user) { return res.status(404).json({ message: 'User not found' }); }
+        console.log('user found');
+        
+
+        // Find product
+        const product = await Product.findOne({_id: productId})
+        if (!product) { return res.status(404).json({ message: 'Invalid Product ID.' }); }
+        console.log('product found');
+        
+
+
+        // For 1st time user, if Cart doesn't exists. Create empty cart.
+        let userCart = await Cart.findOne({ userId: userId });
+        if( !userCart)   { 
+            console.log('inside cart');
+            
+            userCart = await Cart.create({ userId: userId, products: [] }); 
+            userCart.products.push({productId: productId, quantity: 1});
+            await userCart.save();
+            return res.status(200).json({ message: 'Product added to cart successfully' });
+        }
+
+        console.log(userCart);
+        
+
+        // Check if the user has already this product in their cart,  then increase the Quantity by 1
+        if (userCart && userCart.products.includes(productId)) {
+            userCart.products.forEach((item, index) => {
+                if (item.productId.toString() === productId) {
+                    userCart.products[index].quantity++;
+                    return;
+                }
+            });
+        } else {
+            userCart.products.push({productId: productId, quantity: 1});
+        }
+        await userCart.save();
+
+        res.status(200).json({ message: 'Product added to cart successfully' });
+    } catch (error) {
+        res.status(500).json({ error: 'Error adding product to cart', message: error.message });
+    }
+}
 
 
 
@@ -175,5 +236,6 @@ module.exports = {
     handleViewProducts,
     handleGetProductById,
     handleAddProductsToCart,
-    handleAddProductToWishlist
+    handleAddProductToWishlist,
+    handleAddProductToCart
 }

@@ -17,6 +17,8 @@ const verifyTokenMiddleware = function(req, res, next){
 
         const decoded = jwt.verify(token, secret);
         req.userPayload = decoded,
+        console.log('verifyToken Done');
+        
         next();
     }catch(err){
         res.status(401).json({ error: 'Session Expired. Please Login again.' });
