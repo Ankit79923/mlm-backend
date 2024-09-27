@@ -61,7 +61,7 @@ async function handleEditProduct(req, res) {
 }
 
 
-// Delete product - 
+// Delete product - done
 async function handleDeleteProduct(req, res) {
     try {        
         const deletedProduct = await Product.findByIdAndDelete({ _id: req.params.id });
