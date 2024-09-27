@@ -9,6 +9,9 @@ const { generateToken, verifyTokenMiddleware } = require('../middlewares/jwt');
 async function handleAddProduct(req, res) {
     try {
         const { name, category, price, bvPoints, description, stock } = req.body;
+        if(!name || !category || !price || !bvPoints || !description || !stock) {
+            return res.status(400).json({ message: 'All fields are required' });
+        }
         
         const newProduct = await Product.create({
             name,
@@ -110,6 +113,10 @@ async function handleGetProductById(req, res) {
 }
 
 
+
+
+
+// -------------------------------------------------------------------------------------------------------------------------
 // Add products to cart
 async function handleAddProductsToCart(req, res) {
     try {
