@@ -102,7 +102,7 @@ async function handleGetProductById(req, res) {
         if (!product) { return res.status(404).send({ message: 'Product not found' }) }; 
 
         // Send response with product data and image URL 
-        res.send({ message: 'Product fetched successfully', product: product }); 
+        res.status(200).json({ message: 'Product fetched successfully', product: product }); 
     } catch (error) { 
         console.error(error); 
         res.status(500).send({ message: 'Server error' }); 
