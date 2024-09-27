@@ -31,23 +31,31 @@ async function handleAddProduct(req, res) {
 // Edit product
 async function handleEditProduct(req, res) {
     try {
-        const updatedProduct = await Product.findByIdAndUpdate( {_id: req.params.id}, req.body, {
-            new: true,          // Return the updated product
-            runValidators: true // Validate fields while updating
-        });
-        updatedProduct.imageName = req.file.filename;
-        updatedProduct.imageURL = `${req.protocol}://${req.get('host')}/public/images/uploads/${req.file.filename}`;
-        await updatedProduct.save();
+        const updatedProduct = await Product.findById(req.params.id);
 
         if (!updatedProduct) {
             return res.status(404).json({ error: 'Product not found' });
         }
-
+        
+        // Update other product fields manually
+        Object.assign(updatedProduct, req.body);
+        console.log(req.body);
+        
+        
+        // Only update image fields if a file was uploaded
+        if (req.file) {
+            updatedProduct.imageName = req.file.filename;
+            updatedProduct.imageURL = `${req.protocol}://${req.get('host')}/public/images/uploads/${req.file.filename}`;
+        }
+        
+        // Save the updated product
+        await updatedProduct.save();
+        
         res.status(200).json({ message: 'Product updated successfully', product: updatedProduct });
+        
     } catch (error) {
         console.log(error);
-        console.log(error.message);
-        
+        console.log(error.message); 
         res.status(500).json({ error: 'Error updating product' });
     }
 }
