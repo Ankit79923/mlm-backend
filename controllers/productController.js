@@ -99,11 +99,8 @@ async function handleGetProductById(req, res) {
         const product = await Product.findById(req.params.id); 
         if (!product) { return res.status(404).send({ message: 'Product not found' }) }; 
 
-        // Construct the full image URL 
-        const imageURL = `${req.protocol}://${req.get('host')}/public/images/uploads/${product.imageUrl}`; 
-
         // Send response with product data and image URL 
-        res.send({ name: product.name, description: product.description, imageURL: imageURL }); 
+        res.send({ message: 'Product fetched successfully', product: product }); 
     } catch (error) { 
         console.error(error); 
         res.status(500).send({ message: 'Server error' }); 
