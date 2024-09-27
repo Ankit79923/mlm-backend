@@ -5,7 +5,7 @@ const { generateToken, verifyTokenMiddleware } = require('../middlewares/jwt');
 
 
 
-// Add Product
+// Add Product - done
 async function handleAddProduct(req, res) {
     try {
         const { name, category, price, bvPoints, description, stock } = req.body;
@@ -28,7 +28,7 @@ async function handleAddProduct(req, res) {
 }
 
 
-// Edit product
+// Edit product - done
 async function handleEditProduct(req, res) {
     try {
         const updatedProduct = await Product.findById(req.params.id);
@@ -61,17 +61,17 @@ async function handleEditProduct(req, res) {
 }
 
 
-// Delete product
+// Delete product - 
 async function handleDeleteProduct(req, res) {
-    try {
-        console.log(req.params.id);
-        
+    try {        
         const deletedProduct = await Product.findByIdAndDelete({ _id: req.params.id });
         if (!deletedProduct) {
-            console.log("Can't delete product");
-            
+            console.log("Can't delete product"); 
             return res.status(404).json({ error: 'Product not found' });
         }
+
+        // Delete related wishlist items
+        // await Wishlist.deleteMany({ productId: req.params.id });
 
         res.status(200).json({ message: 'Product deleted successfully' });
     } catch (error) {
@@ -82,10 +82,12 @@ async function handleDeleteProduct(req, res) {
 }
 
 
-// Get all products
+// Get all products - done
 async function handleViewProducts(req, res) {
     try {
         const products = await Product.find({});    
+        if(!products) { return res.status(404).json({ message: 'Products not found' }) };
+
         res.status(200).json({ message: 'Products fetched successfully', products: products });
     } catch (error) {
         res.status(500).json({ error: 'Error fetching products', message: error.message });
@@ -93,7 +95,7 @@ async function handleViewProducts(req, res) {
 }
 
 
-// Get product by ID
+// Get product by ID - done
 async function handleGetProductById(req, res) {
     try { 
         const product = await Product.findById(req.params.id); 
