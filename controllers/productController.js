@@ -172,7 +172,7 @@ async function handleAddProductToCart(req, res) {
         // const email = req.userPayload.email;
         // const userFound = await User.findOne({ email: email });
 
-        console.log('Inside controller');
+        // console.log('Inside controller');
         const userId = req.userPayload.id;
         const productId = req.body.productId;
         console.log(userId, productId);

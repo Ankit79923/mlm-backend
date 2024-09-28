@@ -4,109 +4,310 @@ const { findPositionAndAttach, placeInLeftSideOfTree, placeInRightSideOfTree } =
 const { generateToken, verifyTokenMiddleware } = require('../middlewares/jwt');
 
 
-// Register user
-async function handleRegisterUser(req, res) {
-    const { name, email, password, sponsorId } = req.body;
-    console.log(name);
-    console.log(email);
-    console.log(password);
-    console.log(sponsorId);
+// Duplicate - Register user
+// async function handleRegisterUser(req, res) {
+//     const { name, email, password, sponsorId } = req.body;
     
-    // check if email already registered
-    let userFound = await User.findOne({ email: email });
-    if (userFound) { return res.status(404).json({ message: 'Email already registered' }); };
+//     // check if email already registered
+//     let userFound = await User.findOne({ email: email });
+//     if (userFound) { return res.status(404).json({ message: 'Email already registered' }); };
 
-    const count = await User.countDocuments();
-    if (count === 0) {
-        let generatedSponsorId = uuidv4().slice(0, 10);
-        const leftRefferalLink = `${process.env.DOMAIN_URL}/registerLeft?sponsorId=${generatedSponsorId}`;
-        const rightRefferalLink = `${process.env.DOMAIN_URL}/registerRight?sponsorId=${generatedSponsorId}`;
-        const newUser = new User({
-            name,
-            email,
-            password,
-            sponsorId: generatedSponsorId,
-            mySponsorId: generatedSponsorId,
-            leftRefferalLink,
-            rightRefferalLink
-        });
-        await newUser.save();
-        return res.status(201).json({ message: 'First user registered successfully', user: newUser });
-    }
+//     const count = await User.countDocuments();
+//     if (count === 0) {
+//         let generatedSponsorId = uuidv4().slice(0, 10);
+//         const leftRefferalLink = `${process.env.DOMAIN_URL}/registerLeft?sponsorId=${generatedSponsorId}`;
+//         const rightRefferalLink = `${process.env.DOMAIN_URL}/registerRight?sponsorId=${generatedSponsorId}`;
+//         const newUser = new User({
+//             name,
+//             email,
+//             password,
+//             sponsorId: generatedSponsorId,
+//             mySponsorId: generatedSponsorId,
+//             leftRefferalLink,
+//             rightRefferalLink
+//         });
+//         await newUser.save();
+//         return res.status(201).json({ message: 'First user registered successfully', user: newUser });
+//     }
 
+//     try {
+//         // Check if the Sponsor ID exists in the database
+//         const sponsor = await User.findOne({ sponsorId: sponsorId });
+//         if (!sponsor) {
+//             return res.status(400).json({ message: 'Invalid Sponsor ID' });
+//         }
+        
+//         // Creating sponsorID + leftLink + rightLink + user
+//         let mySponsorId = uuidv4().slice(0, 10);
+//         const leftRefferalLink = `${process.env.DOMAIN_URL}/registerLeft?sponsorId=${mySponsorId}`;
+//         const rightRefferalLink = `${process.env.DOMAIN_URL}/registerRight?sponsorId=${mySponsorId}`;
+//         const newUser = new User({
+//             name,
+//             email,
+//             password,
+//             sponsorId,
+//             mySponsorId,
+//             leftRefferalLink,
+//             rightRefferalLink
+//         });
+//         await newUser.save();
+
+//         console.log('Successfully registered new user');
+        
+//         // Attach to sponsor's binary tree
+//         await findPositionAndAttach(sponsor, newUser);
+//         res.status(201).json({ message: 'User registered successfully', user: newUser });
+//     } catch (error) {
+//         console.log(error.message);
+//         res.status(500).json({ message: 'Server error', error });
+//     }
+// }
+
+
+
+// 1. Register root/first user - done
+async function handleRegisterFirstUser(req, res) {
     try {
-        // Check if the Sponsor ID exists in the database
-        const sponsor = await User.findOne({ sponsorId: sponsorId });
-        if (!sponsor) {
-            return res.status(400).json({ message: 'Invalid Sponsor ID' });
-        }
-        console.log(sponsor);
-        console.log('Sponsor found');
-        
-        // Creating sponsorID + leftLink + rightLink + user
-        let mySponsorId = uuidv4().slice(0, 10);
-        const leftRefferalLink = `${process.env.DOMAIN_URL}/registerLeft?sponsorId=${mySponsorId}`;
-        const rightRefferalLink = `${process.env.DOMAIN_URL}/registerRight?sponsorId=${mySponsorId}`;
-        const newUser = new User({
-            name,
-            email,
-            password,
-            sponsorId,
-            mySponsorId,
-            leftRefferalLink,
-            rightRefferalLink
-        });
-        await newUser.save();
+        const count = await User.countDocuments();
+        if (count !== 0) { return res.status(404).json({message: 'First user already exists!'}) }
 
-        console.log('Successfully registered new user');
-        
-        // Attach to sponsor's binary tree
-        await findPositionAndAttach(sponsor, newUser);
-        res.status(201).json({ message: 'User registered successfully', user: newUser });
-    } catch (error) {
-        console.log(error.message);
-        res.status(500).json({ message: 'Server error', error });
+        if (count === 0) {
+            const { 
+                sponsorId,  
+                registrationType, 
+                gender, 
+                name, 
+                dob,
+                mobileNumber,
+                whatsappNumber, 
+                email,
+                state,
+                district,
+                pincode,
+                address,
+                gstNumber, // optional
+                password
+            } = req.body;
+            
+
+            // Check all parameters are recieved or not 
+            if (!sponsorId || !registrationType || !gender || !name || !dob || !mobileNumber || !whatsappNumber || !email || !state || !district || !pincode || !address || !password) {
+                return res.status(400).json({ message: 'Please provide all required fields' });
+            }
+
+            // First user registration (admin/root user)
+            let generatedSponsorId = uuidv4().slice(0, 10);
+            const leftRefferalLink = `${process.env.DOMAIN_URL}/registerLeft?sponsorId=${generatedSponsorId}`;
+            const rightRefferalLink = `${process.env.DOMAIN_URL}/registerRight?sponsorId=${generatedSponsorId}`;
+    
+            const newUser = await User.create({
+                sponsorId: generatedSponsorId,
+                registrationType, 
+                gender, 
+                name, 
+                dob,
+                mobileNumber,
+                whatsappNumber, 
+                email,
+                state,
+                district,
+                pincode,
+                address,
+                gstNumber, // optional
+                password,
+                mySponsorId: generatedSponsorId,
+                leftRefferalLink,
+                rightRefferalLink
+            });
+
+            return res.status(201).json({ message: 'First user registered successfully', user: newUser });
+        }
+    }catch(e) {
+        console.error(e);
+        res.status(500).json({ message: 'Server error', error: e.message });
     }
 }
 
 
-// Register user using Left link
-async function handleRegisterUsingLeftLink(req, res) {
+
+
+// 2. Register user
+async function handleRegisterUser(req, res) {
     try {
-        const sponsorId = req.query.sponsorId;
+        const count = await User.countDocuments();
+        if (count === 0) { return res.status(404).json({message: 'No tree exists. Firstly Register root user.'}) }
 
-        // finding Sponsor
-        const user = await User.findOne({ mySponsorId: sponsorId });
-        if (!user) { return res.status(404).json({ message: 'Incorrect sponsorId' }); }
-        console.log('Sponsor found successfully');
-
-        // New user details
-        const { name, email, password } = req.body;
-
-        // check if email already registered
-        let userFound = await User.findOne({ email: email });
-        if (userFound) { return res.status(404).json({ message: 'Email already registered' }); };
-
-
-        // Creating new user + sponsorID + leftLink + rightLink
-        let mySponsorId = uuidv4().slice(0, 10);
-        const leftRefferalLink = `${process.env.DOMAIN_URL}/registerLeft?sponsorId=${mySponsorId}`;
-        const rightRefferalLink = `${process.env.DOMAIN_URL}/registerRight?sponsorId=${mySponsorId}`;
-        const newUser = new User({
-            name,
+        const { 
+            sponsorId,  
+            registrationType, 
+            gender, 
+            name, 
+            dob,
+            mobileNumber,
+            whatsappNumber, 
             email,
-            password,
+            state,
+            district,
+            pincode,
+            address,
+            gstNumber, // optional
+            password
+        } = req.body;
+
+        // Check all parameters are recieved or not 
+        if (!sponsorId || !registrationType || !gender || !name || !dob || !mobileNumber || !whatsappNumber || !email || !state || !district || !pincode || !address || !password) {
+            return res.status(400).json({ message: 'Please provide all required fields' });
+        }
+
+        // Check if the Sponsor ID exists in the database
+        const sponsor = await User.findOne({ mySponsorId: sponsorId });
+        if (!sponsor) { return res.status(400).json({ message: 'Invalid Sponsor ID' }); }
+    
+        // Check if email is already registered
+        let userFound = await User.findOne({ email: email });
+        if (userFound) { return res.status(404).json({ message: 'Email is already registered' }); }
+
+        // Check if Phone is already registered
+        let phoneFound = await User.findOne({ mobileNumber: mobileNumber });
+        if (phoneFound) { return res.status(404).json({ message: 'Phone number is already registered' }); }
+
+        // Check if Whatsapp number is already registered
+        let whatsappNumberFound = await User.findOne({ whatsappNumber: whatsappNumber });
+        if (whatsappNumberFound) { return res.status(404).json({ message: 'Whatsapp number is already registered' }); }
+
+        // Check if GST number is already registered
+        if(gstNumber !== undefined) {
+            let gstNumberFound = await User.findOne({ gstNumber: gstNumber });
+            if (gstNumberFound) { return res.status(404).json({ message: 'GST number is already registered' }); }
+        }
+        
+        
+        
+
+        // Generate a unique mySponsorId
+        let generatedSponsorId = uuidv4().slice(0, 10);
+        const leftRefferalLink = `${process.env.DOMAIN_URL}/registerLeft?sponsorId=${generatedSponsorId}`;
+        const rightRefferalLink = `${process.env.DOMAIN_URL}/registerRight?sponsorId=${generatedSponsorId}`;
+
+        // Create new user
+        const newUser = await User.create({
             sponsorId,
-            mySponsorId,
+            registrationType, 
+            gender, 
+            name, 
+            dob,
+            mobileNumber,
+            whatsappNumber, 
+            email,
+            state,
+            district,
+            pincode,
+            address,
+            gstNumber, // optional
+            password,
+            mySponsorId: generatedSponsorId,
             leftRefferalLink,
             rightRefferalLink
         });
-        await newUser.save();
 
-        await placeInLeftSideOfTree(user, newUser);
-        res.status(201).json({ message: 'User registered successfully', user: newUser });
+        // Attach to sponsor's binary tree
+        await findPositionAndAttach(sponsor, newUser);
+        return res.status(201).json({ message: 'User registered successfully', user: newUser });
     } catch (error) {
-        res.status(500).json({ message: 'Server error', error });
+        console.error(error);
+        res.status(500).json({ message: 'Server error', error: error.message });
+    }
+}
+
+
+
+
+
+
+
+
+// 3. Register user using Left link
+async function handleRegisterUsingLeftLink(req, res) {
+    try {
+        // New user details
+        const { 
+            sponsorId,  
+            registrationType, 
+            gender, 
+            name, 
+            dob,
+            mobileNumber,
+            whatsappNumber, 
+            email,
+            state,
+            district,
+            pincode,
+            address,
+            gstNumber, // optional
+            password
+        } = req.body;
+
+        // Check all parameters are recieved or not 
+        if (!sponsorId || !registrationType || !gender || !name || !dob || !mobileNumber || !whatsappNumber || !email || !state || !district || !pincode || !address || !password) {
+            return res.status(400).json({ message: 'Please provide all required fields' });
+        }
+
+        // Check if the Sponsor ID exists in the database
+        const sponsor = await User.findOne({ mySponsorId: sponsorId });
+        if (!sponsor) { return res.status(400).json({ message: 'Invalid Sponsor ID' }); }
+    
+        // Check if email is already registered
+        let userFound = await User.findOne({ email: email });
+        if (userFound) { return res.status(404).json({ message: 'Email is already registered' }); }
+
+        // Check if Phone is already registered
+        let phoneFound = await User.findOne({ mobileNumber: mobileNumber });
+        if (phoneFound) { return res.status(404).json({ message: 'Phone number is already registered' }); }
+
+        // Check if Whatsapp number is already registered
+        let whatsappNumberFound = await User.findOne({ whatsappNumber: whatsappNumber });
+        if (whatsappNumberFound) { return res.status(404).json({ message: 'Whatsapp number is already registered' }); }
+
+        // Check if GST number is already registered
+        if(gstNumber !== undefined) {
+            let gstNumberFound = await User.findOne({ gstNumber: gstNumber });
+            if (gstNumberFound) { return res.status(404).json({ message: 'GST number is already registered' }); }
+        }
+        
+        
+        
+
+        // Generate a unique mySponsorId
+        let generatedSponsorId = uuidv4().slice(0, 10);
+        const leftRefferalLink = `${process.env.DOMAIN_URL}/registerLeft?sponsorId=${generatedSponsorId}`;
+        const rightRefferalLink = `${process.env.DOMAIN_URL}/registerRight?sponsorId=${generatedSponsorId}`;
+
+        // Create new user
+        const newUser = await User.create({
+            sponsorId,
+            registrationType, 
+            gender, 
+            name, 
+            dob,
+            mobileNumber,
+            whatsappNumber, 
+            email,
+            state,
+            district,
+            pincode,
+            address,
+            gstNumber, // optional
+            password,
+            mySponsorId: generatedSponsorId,
+            leftRefferalLink,
+            rightRefferalLink
+        });
+
+        // Attach to sponsor's binary tree
+        await placeInLeftSideOfTree(sponsor, newUser);
+        return res.status(201).json({ message: 'User registered successfully', user: newUser });
+    } catch (error) {
+        res.status(500).json({ message: 'Server error', error: error.message });
     }
 }
 
@@ -114,37 +315,85 @@ async function handleRegisterUsingLeftLink(req, res) {
 // Register user using Right link
 async function handleRegisterUsingRightLink(req, res) {
     try {
-        const sponsorId = req.query.sponsorId;
-        const user = await User.findOne({ mySponsorId: sponsorId });
-        if (!user) { return res.status(404).json({ message: 'Incorrect sponsorId' }); }
-
         // New user details
-        const { name, email, password } = req.body;
-
-        // check if email already registered
-        let userFound = await User.findOne({ email: email });
-        if (userFound) { return res.status(404).json({ message: 'Email already registered' }); };
-
-
-        // Creating new user + sponsorID + leftLink + rightLink
-        let mySponsorId = uuidv4().slice(0, 10);
-        const leftRefferalLink = `${process.env.DOMAIN_URL}/registerLeft?sponsorId=${mySponsorId}`;
-        const rightRefferalLink = `${process.env.DOMAIN_URL}/registerRight?sponsorId=${mySponsorId}`;
-        const newUser = new User({
-            name,
+        const { 
+            sponsorId,  
+            registrationType, 
+            gender, 
+            name, 
+            dob,
+            mobileNumber,
+            whatsappNumber, 
             email,
-            password,
+            state,
+            district,
+            pincode,
+            address,
+            gstNumber, // optional
+            password
+        } = req.body;
+
+        // Check all parameters are recieved or not 
+        if (!sponsorId || !registrationType || !gender || !name || !dob || !mobileNumber || !whatsappNumber || !email || !state || !district || !pincode || !address || !password) {
+            return res.status(400).json({ message: 'Please provide all required fields' });
+        }
+
+        // Check if the Sponsor ID exists in the database
+        const sponsor = await User.findOne({ mySponsorId: sponsorId });
+        if (!sponsor) { return res.status(400).json({ message: 'Invalid Sponsor ID' }); }
+    
+        // Check if email is already registered
+        let userFound = await User.findOne({ email: email });
+        if (userFound) { return res.status(404).json({ message: 'Email is already registered' }); }
+
+        // Check if Phone is already registered
+        let phoneFound = await User.findOne({ mobileNumber: mobileNumber });
+        if (phoneFound) { return res.status(404).json({ message: 'Phone number is already registered' }); }
+
+        // Check if Whatsapp number is already registered
+        let whatsappNumberFound = await User.findOne({ whatsappNumber: whatsappNumber });
+        if (whatsappNumberFound) { return res.status(404).json({ message: 'Whatsapp number is already registered' }); }
+
+        // Check if GST number is already registered
+        if(gstNumber !== undefined) {
+            let gstNumberFound = await User.findOne({ gstNumber: gstNumber });
+            if (gstNumberFound) { return res.status(404).json({ message: 'GST number is already registered' }); }
+        }
+        
+        
+        
+
+        // Generate a unique mySponsorId
+        let generatedSponsorId = uuidv4().slice(0, 10);
+        const leftRefferalLink = `${process.env.DOMAIN_URL}/registerLeft?sponsorId=${generatedSponsorId}`;
+        const rightRefferalLink = `${process.env.DOMAIN_URL}/registerRight?sponsorId=${generatedSponsorId}`;
+
+        // Create new user
+        const newUser = await User.create({
             sponsorId,
-            mySponsorId,
+            registrationType, 
+            gender, 
+            name, 
+            dob,
+            mobileNumber,
+            whatsappNumber, 
+            email,
+            state,
+            district,
+            pincode,
+            address,
+            gstNumber, // optional
+            password,
+            mySponsorId: generatedSponsorId,
             leftRefferalLink,
             rightRefferalLink
         });
-        await newUser.save();
 
-        await placeInRightSideOfTree(user, newUser);
-        res.status(201).json({ message: 'User registered successfully', user: newUser });
+        // Attach to sponsor's binary tree
+        await placeInRightSideOfTree(sponsor, newUser);
+        return res.status(201).json({ message: 'User registered successfully', user: newUser });
     } catch (error) {
-        res.status(500).json({ message: 'Server error', error });
+        res.status(500).json({ message: 'Server error', error: error.message });
     }
 }
 
@@ -362,6 +611,7 @@ async function buildTree(user, level = 1) {
 
 
 module.exports = {
+    handleRegisterFirstUser,
     handleRegisterUser,
     handleLoginUser,
     handleRegisterUsingLeftLink,
