@@ -52,7 +52,7 @@ async function placeInLeftSideOfTree(sponsor, newUser) {
 }
 
 
-async function placeInRightSideOfTree(sponsor, newUser) {
+async function placeInRightSideOfTree(sponsor, newUser ) {
     if (!sponsor.binaryPosition.right) {
         // attach new user at this position
         sponsor.binaryPosition.right = newUser._id;
