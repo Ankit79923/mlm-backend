@@ -97,8 +97,8 @@ async function handleRegisterFirstUser(req, res) {
 
             // First user registration (admin/root user)
             let generatedSponsorId = uuidv4().slice(0, 10);
-            const leftRefferalLink = `${process.env.DOMAIN_URL}/registerLeft?sponsorId=${generatedSponsorId}`;
-            const rightRefferalLink = `${process.env.DOMAIN_URL}/registerRight?sponsorId=${generatedSponsorId}`;
+            const leftRefferalLink = `${process.env.DOMAIN_URL}/userdashboard/signupleft/${generatedSponsorId}`;
+            const rightRefferalLink = `${process.env.DOMAIN_URL}/userdashboard/signupright/${generatedSponsorId}`;
     
             const newUser = await User.create({
                 sponsorId: generatedSponsorId,
@@ -186,8 +186,8 @@ async function handleRegisterUser(req, res) {
 
         // Generate a unique mySponsorId
         let generatedSponsorId = uuidv4().slice(0, 10);
-        const leftRefferalLink = `${process.env.DOMAIN_URL}/registerLeft?sponsorId=${generatedSponsorId}`;
-        const rightRefferalLink = `${process.env.DOMAIN_URL}/registerRight?sponsorId=${generatedSponsorId}`;
+        const leftRefferalLink = `${process.env.DOMAIN_URL}/userdashboard/signupleft/${generatedSponsorId}`;
+        const rightRefferalLink = `${process.env.DOMAIN_URL}/userdashboard/signupright/${generatedSponsorId}`;
 
         // Create new user
         const newUser = await User.create({
@@ -218,10 +218,6 @@ async function handleRegisterUser(req, res) {
         res.status(500).json({ message: 'Server error', error: error.message });
     }
 }
-
-
-
-
 
 
 
@@ -279,8 +275,8 @@ async function handleRegisterUsingLeftLink(req, res) {
 
         // Generate a unique mySponsorId
         let generatedSponsorId = uuidv4().slice(0, 10);
-        const leftRefferalLink = `${process.env.DOMAIN_URL}/registerLeft?sponsorId=${generatedSponsorId}`;
-        const rightRefferalLink = `${process.env.DOMAIN_URL}/registerRight?sponsorId=${generatedSponsorId}`;
+        const leftRefferalLink = `${process.env.DOMAIN_URL}/userdashboard/signupleft/${generatedSponsorId}`;
+        const rightRefferalLink = `${process.env.DOMAIN_URL}/userdashboard/signupright/${generatedSponsorId}`;
 
         // Create new user
         const newUser = await User.create({
@@ -312,7 +308,8 @@ async function handleRegisterUsingLeftLink(req, res) {
 }
 
 
-// Register user using Right link
+
+// 4. Register user using Right link
 async function handleRegisterUsingRightLink(req, res) {
     try {
         // New user details
@@ -365,8 +362,8 @@ async function handleRegisterUsingRightLink(req, res) {
 
         // Generate a unique mySponsorId
         let generatedSponsorId = uuidv4().slice(0, 10);
-        const leftRefferalLink = `${process.env.DOMAIN_URL}/registerLeft?sponsorId=${generatedSponsorId}`;
-        const rightRefferalLink = `${process.env.DOMAIN_URL}/registerRight?sponsorId=${generatedSponsorId}`;
+        const leftRefferalLink = `${process.env.DOMAIN_URL}/userdashboard/signupleft/${generatedSponsorId}`;
+        const rightRefferalLink = `${process.env.DOMAIN_URL}/userdashboard/signupright/${generatedSponsorId}`;
 
         // Create new user
         const newUser = await User.create({
@@ -398,7 +395,7 @@ async function handleRegisterUsingRightLink(req, res) {
 }
 
 
-// Login user
+// 5. Login user
 async function handleLoginUser(req, res) {
     try {
         const { email, password } = req.body;
@@ -419,6 +416,25 @@ async function handleLoginUser(req, res) {
         }
     } catch (error) {
         res.status(500).json({ message: error.message });
+    }
+}
+
+
+
+
+// 6. Verify Sponsor
+async function handleVerifySponsor(req, res) {
+    try {
+        const { sponsorId } = req.body;
+        if (!sponsorId) { return res.status(400).json({ message: 'Please provide your Sponsor ID' }); }
+
+        // Check if the Sponsor ID exists in the database
+        const sponsor = await User.findOne({ mySponsorId: sponsorId });
+        if (!sponsor) { return res.status(400).json({ message: 'Invalid Sponsor ID' }); }
+
+        return res.status(200).json({ message: 'Sponsor verified successfully', sponsor: sponsor });
+    } catch (error) {
+        res.status(500).json({ message: 'Server error', error: error.message });
     }
 }
 
@@ -613,9 +629,10 @@ async function buildTree(user, level = 1) {
 module.exports = {
     handleRegisterFirstUser,
     handleRegisterUser,
-    handleLoginUser,
     handleRegisterUsingLeftLink,
     handleRegisterUsingRightLink,
+    handleLoginUser,
+    handleVerifySponsor,
     handleFindUser,
     handleGetSponsorChildrens,
 }
