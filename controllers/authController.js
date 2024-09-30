@@ -2,66 +2,8 @@ const User = require('../models/users');
 const { v4: uuidv4 } = require('uuid');
 const { findPositionAndAttach, placeInLeftSideOfTree, placeInRightSideOfTree } = require('../utils/placeInBinaryTree');
 const { generateToken, verifyTokenMiddleware } = require('../middlewares/jwt');
+const generateUniqueSponsorID = require('../utils/generateUniqueSponsorId');
 
-
-// Duplicate - Register user
-// async function handleRegisterUser(req, res) {
-//     const { name, email, password, sponsorId } = req.body;
-    
-//     // check if email already registered
-//     let userFound = await User.findOne({ email: email });
-//     if (userFound) { return res.status(404).json({ message: 'Email already registered' }); };
-
-//     const count = await User.countDocuments();
-//     if (count === 0) {
-//         let generatedSponsorId = uuidv4().slice(0, 10);
-//         const leftRefferalLink = `${process.env.DOMAIN_URL}/registerLeft?sponsorId=${generatedSponsorId}`;
-//         const rightRefferalLink = `${process.env.DOMAIN_URL}/registerRight?sponsorId=${generatedSponsorId}`;
-//         const newUser = new User({
-//             name,
-//             email,
-//             password,
-//             sponsorId: generatedSponsorId,
-//             mySponsorId: generatedSponsorId,
-//             leftRefferalLink,
-//             rightRefferalLink
-//         });
-//         await newUser.save();
-//         return res.status(201).json({ message: 'First user registered successfully', user: newUser });
-//     }
-
-//     try {
-//         // Check if the Sponsor ID exists in the database
-//         const sponsor = await User.findOne({ sponsorId: sponsorId });
-//         if (!sponsor) {
-//             return res.status(400).json({ message: 'Invalid Sponsor ID' });
-//         }
-        
-//         // Creating sponsorID + leftLink + rightLink + user
-//         let mySponsorId = uuidv4().slice(0, 10);
-//         const leftRefferalLink = `${process.env.DOMAIN_URL}/registerLeft?sponsorId=${mySponsorId}`;
-//         const rightRefferalLink = `${process.env.DOMAIN_URL}/registerRight?sponsorId=${mySponsorId}`;
-//         const newUser = new User({
-//             name,
-//             email,
-//             password,
-//             sponsorId,
-//             mySponsorId,
-//             leftRefferalLink,
-//             rightRefferalLink
-//         });
-//         await newUser.save();
-
-//         console.log('Successfully registered new user');
-        
-//         // Attach to sponsor's binary tree
-//         await findPositionAndAttach(sponsor, newUser);
-//         res.status(201).json({ message: 'User registered successfully', user: newUser });
-//     } catch (error) {
-//         console.log(error.message);
-//         res.status(500).json({ message: 'Server error', error });
-//     }
-// }
 
 
 
@@ -96,7 +38,7 @@ async function handleRegisterFirstUser(req, res) {
             }
 
             // First user registration (admin/root user)
-            let generatedSponsorId = uuidv4().slice(0, 10);
+            let generatedSponsorId = await generateUniqueSponsorID();
             const leftRefferalLink = `${process.env.DOMAIN_URL}/signupleft/${generatedSponsorId}`;
             const rightRefferalLink = `${process.env.DOMAIN_URL}/signupright/${generatedSponsorId}`;
     
@@ -185,7 +127,8 @@ async function handleRegisterUser(req, res) {
         
 
         // Generate a unique mySponsorId
-        let generatedSponsorId = uuidv4().slice(0, 10);
+        // let generatedSponsorId = uuidv4().slice(0, 10);
+        let generatedSponsorId = await generateUniqueSponsorID();
         const leftRefferalLink = `${process.env.DOMAIN_URL}/signupleft/${generatedSponsorId}`;
         const rightRefferalLink = `${process.env.DOMAIN_URL}/signupright/${generatedSponsorId}`;
 
@@ -274,7 +217,7 @@ async function handleRegisterUsingLeftLink(req, res) {
         
 
         // Generate a unique mySponsorId
-        let generatedSponsorId = uuidv4().slice(0, 10);
+        let generatedSponsorId = await generateUniqueSponsorID();
         const leftRefferalLink = `${process.env.DOMAIN_URL}/signupleft/${generatedSponsorId}`;
         const rightRefferalLink = `${process.env.DOMAIN_URL}/signupright/${generatedSponsorId}`;
 
@@ -306,6 +249,7 @@ async function handleRegisterUsingLeftLink(req, res) {
         res.status(500).json({ message: 'Server error', error: error.message });
     }
 }
+
 
 
 
@@ -361,7 +305,7 @@ async function handleRegisterUsingRightLink(req, res) {
         
 
         // Generate a unique mySponsorId
-        let generatedSponsorId = uuidv4().slice(0, 10);
+        let generatedSponsorId = await generateUniqueSponsorID();
         const leftRefferalLink = `${process.env.DOMAIN_URL}/signupleft/${generatedSponsorId}`;
         const rightRefferalLink = `${process.env.DOMAIN_URL}/signupright/${generatedSponsorId}`;
 
@@ -393,6 +337,8 @@ async function handleRegisterUsingRightLink(req, res) {
         res.status(500).json({ message: 'Server error', error: error.message });
     }
 }
+
+
 
 
 // 5. Login user
@@ -441,42 +387,7 @@ async function handleVerifySponsor(req, res) {
 
 
 
-
-// async function handleShowAllChildren() {
-//     try{
-//         let user = await User.findOne({ _id: request.params.id});
-//         if(!user) { return res.status(404).json({ message: 'Your account not found.' }); }
-
-//         let children = [];
-//         await findAllChildren(user, children);
-//         res.status(200).json({ans: children});
-//     }catch(error) {
-//         res.status(500).json({ message: error.message });
-//     }
-// }
-
-
-
-// async function findAllChildren(user, children) {
-//     // single user case
-//     if (!user.binaryPosition.left && !user.binaryPosition.right) { 
-//         return [user]; 
-//     }
-
-//     if (user.binaryPosition.leftChild) {
-//         const leftChild = await handleShowAllChildren(await User.findById(user.binaryPosition.leftChild));
-//         children.push(...leftChild);
-//     }
-
-//     if (user.binaryPosition.rightChild) {
-//         const rightChild = await handleShowAllChildren(await User.findById(user.rightChild));
-//         children.push(rightChild);
-//         return children;
-//     }
-// }
-
-
-// Find user
+// 7. Find a specific user by its _id
 async function handleFindUser(req, res) {
     try {
         const user = await User.findById(req.params.id);
@@ -489,62 +400,8 @@ async function handleFindUser(req, res) {
 
 
 
-// ---------------------------------------------------------------- PREVIOUS VERSION
-// Get all sponsor's children
-// async function handleGetSponsorChildrens(req, res) {
-//     try {
-//         // Find the sponsor user by ID
-//         const sponsor = await User.findOne({_id: req.params.id});
-//         if (!sponsor) { return res.status(404).json({ message: 'User not found' }); }
 
-//         // Array to hold all children
-//         let children = [];
-
-//         // Recursive function to get all children
-//         // await findAllChildren2(sponsor, children);
-//         await findAllChildren3(sponsor, children);
-
-//         // Return the list of all children
-//         return res.status(200).json({ message: 'Children fetched successfully', children });
-//     } catch (error) {
-//         console.error(error);
-//         return res.status(500).json({ message: 'Server error', error: error.message });
-//     }
-// }
-// ---------------------------------------------- recently Previously used functions
-// Recursive function to find all children
-// async function findAllChildren3(user, children, level = 1) {
-//     // Base case: If the level exceeds 4 or if the user is null, return
-//     if (level > 4) return;
-    
-//     // Add the current user or null if no user at this position
-//     children.push(user ? { id: user._id, name: user.name } : null);
-    
-//     if (user) {
-//         // Handle the left child
-//         let leftChild = null;
-//         if (user.binaryPosition && user.binaryPosition.left) {
-//             leftChild = await User.findById(user.binaryPosition.left);
-//         }
-//         await findAllChildren3(leftChild, children, level + 1);
-
-//         // Handle the right child
-//         let rightChild = null;
-//         if (user.binaryPosition && user.binaryPosition.right) {
-//             rightChild = await User.findById(user.binaryPosition.right);
-//         }
-//         await findAllChildren3(rightChild, children, level + 1);
-//     } else {
-//         // If user is null, still add two nulls for missing left and right children
-//         await findAllChildren3(null, children, level + 1);
-//         await findAllChildren3(null, children, level + 1);
-//     }
-// }
-
-
-
-// ---------------------------------------------------------------- NEW VERSION ----------------------------------------------------------------
-// Get all sponsor's children with tree-like structure
+// 8. Get all sponsor's children with tree-like structure, upto level 4
 async function handleGetSponsorChildrens(req, res) {
     try {
         // Find sponsor
@@ -566,36 +423,9 @@ async function handleGetSponsorChildrens(req, res) {
 }
 
 
-// Currently working with this code - This finds all the children, we don't want this.
-// Recursive function to build the binary tree structure
-// async function buildTree(user) {
-//     if (!user) return null;            // Base case: If no user, return null
-
-//     const userNode = {
-//         _id: user._id,
-//         value: user.name, 
-//         mySponsorId: user.mySponsorId,
-//         leftChild: null,
-//         rightChild: null
-//     };
-
-//     // Find left and right children recursively
-//     if (user.binaryPosition && user.binaryPosition.left) {
-//         const leftChild = await User.findById(user.binaryPosition.left);
-//         userNode.leftChild = await buildTree(leftChild);
-//     }
-
-//     if (user.binaryPosition && user.binaryPosition.right) {
-//         const rightChild = await User.findById(user.binaryPosition.right);
-//         userNode.rightChild = await buildTree(rightChild);
-//     }
-
-//     return userNode;
-// }
 
 
-// Trying 
-// Recursive function to build the binary tree structure up to level 4
+// helper Recursive function to build the binary tree structure up to level 4
 async function buildTree(user, level = 1) {
     if (!user || level > 4) return null; // Base case: If no user or level > 4, return null
 
