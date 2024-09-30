@@ -97,8 +97,8 @@ async function handleRegisterFirstUser(req, res) {
 
             // First user registration (admin/root user)
             let generatedSponsorId = uuidv4().slice(0, 10);
-            const leftRefferalLink = `${process.env.DOMAIN_URL}/userdashboard/signupleft/${generatedSponsorId}`;
-            const rightRefferalLink = `${process.env.DOMAIN_URL}/userdashboard/signupright/${generatedSponsorId}`;
+            const leftRefferalLink = `${process.env.DOMAIN_URL}/signupleft/${generatedSponsorId}`;
+            const rightRefferalLink = `${process.env.DOMAIN_URL}/signupright/${generatedSponsorId}`;
     
             const newUser = await User.create({
                 sponsorId: generatedSponsorId,
@@ -186,8 +186,8 @@ async function handleRegisterUser(req, res) {
 
         // Generate a unique mySponsorId
         let generatedSponsorId = uuidv4().slice(0, 10);
-        const leftRefferalLink = `${process.env.DOMAIN_URL}/userdashboard/signupleft/${generatedSponsorId}`;
-        const rightRefferalLink = `${process.env.DOMAIN_URL}/userdashboard/signupright/${generatedSponsorId}`;
+        const leftRefferalLink = `${process.env.DOMAIN_URL}/signupleft/${generatedSponsorId}`;
+        const rightRefferalLink = `${process.env.DOMAIN_URL}/signupright/${generatedSponsorId}`;
 
         // Create new user
         const newUser = await User.create({
@@ -275,8 +275,8 @@ async function handleRegisterUsingLeftLink(req, res) {
 
         // Generate a unique mySponsorId
         let generatedSponsorId = uuidv4().slice(0, 10);
-        const leftRefferalLink = `${process.env.DOMAIN_URL}/userdashboard/signupleft/${generatedSponsorId}`;
-        const rightRefferalLink = `${process.env.DOMAIN_URL}/userdashboard/signupright/${generatedSponsorId}`;
+        const leftRefferalLink = `${process.env.DOMAIN_URL}/signupleft/${generatedSponsorId}`;
+        const rightRefferalLink = `${process.env.DOMAIN_URL}/signupright/${generatedSponsorId}`;
 
         // Create new user
         const newUser = await User.create({
@@ -362,8 +362,8 @@ async function handleRegisterUsingRightLink(req, res) {
 
         // Generate a unique mySponsorId
         let generatedSponsorId = uuidv4().slice(0, 10);
-        const leftRefferalLink = `${process.env.DOMAIN_URL}/userdashboard/signupleft/${generatedSponsorId}`;
-        const rightRefferalLink = `${process.env.DOMAIN_URL}/userdashboard/signupright/${generatedSponsorId}`;
+        const leftRefferalLink = `${process.env.DOMAIN_URL}/signupleft/${generatedSponsorId}`;
+        const rightRefferalLink = `${process.env.DOMAIN_URL}/signupright/${generatedSponsorId}`;
 
         // Create new user
         const newUser = await User.create({
@@ -398,11 +398,11 @@ async function handleRegisterUsingRightLink(req, res) {
 // 5. Login user
 async function handleLoginUser(req, res) {
     try {
-        const { email, password } = req.body;
-        if (!email || !password) { return res.status(400).json({ message: 'Please provide email and password' }); }
+        const { sponsorId, password } = req.body;
+        if (!sponsorId || !password) { return res.status(400).json({ message: 'Please enter both sponsorId and password' }); }
 
         // Check user exists OR not
-        let user = await User.findOne({ email: email });
+        let user = await User.findOne({ mySponsorId: sponsorId });
         if (!user) { return res.status(404).json({ message: 'User not found' }); }
         
 
@@ -412,7 +412,7 @@ async function handleLoginUser(req, res) {
             const token = generateToken(payload);
             res.json({ token, userId: user._id });
         } else {
-            res.status(404).json({ message: 'Incorrect username OR password.' });
+            res.status(404).json({ message: 'Incorrect sponsorId OR password.' });
         }
     } catch (error) {
         res.status(500).json({ message: error.message });
