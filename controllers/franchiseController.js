@@ -16,7 +16,7 @@ const handleCreateFranchise = async (req, res) => {
         }
   
         // Check if the franchise contactInfo already exists
-        const contactNumber = await Franchise.findOne({ email });
+        const contactNumber = await Franchise.findOne({ contactInfo });
         if (contactNumber) {
           return res.status(400).json({ message: 'Franchise already exists with this contact Number.' });
         }
@@ -75,6 +75,7 @@ const handleAssignProductsToFranchise = async (req, res) => {
 
         // Loop through products and update inventory
         const assignedProducts = [];
+        let totalPrice = 0;
         for (const product of products) {
             const { productId, quantity, price, bvPoints } = product; // Destructure all necessary fields
             if (!productId || !quantity || !price || !bvPoints) {
@@ -94,6 +95,7 @@ const handleAssignProductsToFranchise = async (req, res) => {
                 
                 existingInventoryItem.quantity += quantity;
                 existingInventoryItem.price = price; // Update the price as well
+                totalPrice += price*quantity;
                 if (bvPoints) existingInventoryItem.bvPoints = bvPoints; // Update bvPoints if provided
                 // if (typeof isAvailable === 'boolean') existingInventoryItem.isAvailable = isAvailable; // Update availability
             } else {
@@ -108,7 +110,7 @@ const handleAssignProductsToFranchise = async (req, res) => {
         await inventory.save();
 
         // Respond with success
-        return res.status(200).json( { message: 'Products assigned successfully to franchise', franchiseId, assignedProducts });
+        return res.status(200).json( { message: 'Products assigned successfully to franchise', franchiseId, assignedProducts, totalPrice});
     } catch (error) {
         console.error(error);
         return res.status(500).json({ message: 'Internal server error' });
