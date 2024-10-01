@@ -4,12 +4,12 @@ const upload = require('../middlewares/multer');
 const { isAdminMiddleware } = require('../middlewares/jwt');
 const { handleAdminLogin, handleCreateAdmin} = require('../controllers/adminController');
 const { handleAddProduct, handleEditProduct, handleDeleteProduct, handleViewProducts } = require('../controllers/productController');
-const { handleCreateFranchise, handleGetAllFranchises } = require('../controllers/franchiseController');   
+const { handleCreateFranchise, handleGetAllFranchises, handleAssignProductsToFranchise, handleGetFranchiesInventory, handleRemoveProductFromFranchiseInventory } = require('../controllers/franchiseController');   
 
 
 // Authentication Routes
 router.post('/create', handleCreateAdmin);  
-router.post('/login', handleAdminLogin);
+router.post('/login', handleAdminLogin);  
 
 
 // Product Routes
@@ -22,7 +22,8 @@ router.get('/viewProducts', isAdminMiddleware, handleViewProducts);
 // Franchise routes
 router.post('/franchise/create', handleCreateFranchise);
 router.get('/getAllFranchies',  handleGetAllFranchises);
-
-
+router.post('/franchise/:franchiseId/assign-products', handleAssignProductsToFranchise);
+router.get('/franchise/:franchiseId/assigned-products', handleGetFranchiesInventory);
+router.delete('/franchise/:franchiseId/remove-product/:productId', handleRemoveProductFromFranchiseInventory);
 
 module.exports = router;
