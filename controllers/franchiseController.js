@@ -1,6 +1,7 @@
 const Franchise = require('../models/franchise'); 
 const Product = require('../models/products');
 const Inventory = require('../models/inventory');
+const { generateToken } = require('../middlewares/jwt');
 
 
 
@@ -196,10 +197,41 @@ const handleRemoveProductFromFranchiseInventory = async (req, res) => {
 
 
 
+// 6. Handle Login franchise
+const handleLoginFranchise = async (req, res) => {
+    try {
+        const { email, password } = req.body;
+        if ( !email || !password ) { return res.status(400).json({ message: 'Please provide both email and password' }); }
+
+        // Find the franchise by email
+        const franchise = await Franchise.findOne({ email });
+        if (!franchise) { return res.status(401).json({ message: 'Invalid email ' }); }
+
+        // Check the password
+        const isPasswordMatch = await franchise.comparePassword(password);
+        if (isPasswordMatch) {
+            const payload = { email: franchise.email, id: franchise._id, role: 'franchise' };
+            const token = generateToken(payload);
+            return res.json({ token, userId: franchise._id, name: franchise.franchiseName });
+        } else {
+            return res.status(404).json({ message: 'Invalid email or password.' });
+        }
+    } catch (error) {
+        console.error('Error logging in franchise:', error);
+        return res.status(500).json({ message: 'Internal server error', error: error.message });
+    }
+}
+
+
+
+
+
+
 module.exports = {
     handleCreateFranchise,
     handleGetAllFranchises,
     handleAssignProductsToFranchise,
     handleGetFranchiesInventory,
-    handleRemoveProductFromFranchiseInventory
+    handleRemoveProductFromFranchiseInventory,
+    handleLoginFranchise
 }

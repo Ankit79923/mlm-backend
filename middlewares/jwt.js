@@ -47,10 +47,32 @@ const isAdminMiddleware = (req, res, next) => {
 
 
 
+// Franchise Middleware
+const isFranchiseMiddleware = (req, res, next) => {
+    try {
+        const token = req.headers.authorization.split(' ')[1];
+        if(!token) return res.status(401).json({ message: "Access Denied: Please Login." });
+
+        const decoded = jwt.verify(token, secret);
+        if (decoded.role !== 'franchise') {
+            return res.status(403).json({ message: "Access Denied: You are not authorized." });
+        }
+
+        // If user is franchise, allow access
+        req.userPayload = decoded;
+        next(); // Continue to the next middleware/route handler
+    } catch (error) {
+        return res.status(401).json({ message: "Invalid token.", error: error.message });
+    }
+};
+
+
+
 
 module.exports = {
     generateToken,
     verifyTokenMiddleware,
-    isAdminMiddleware
+    isAdminMiddleware,
+    isFranchiseMiddleware
 };
 
