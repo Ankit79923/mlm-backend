@@ -82,12 +82,12 @@ const handleAssignProductsToFranchise = async (req, res) => {
             }
 
             // Check if the product exists in Products collection
-            const existingProduct = await Product.findById(productId);
-            if (!existingProduct) { return res.status(404).json({ message: `Product with ID ${productId} not found.` }); }
+            const productFound = await Product.findById(productId);
+            if (!productFound) { return res.status(404).json({ message: `Product with ID ${productId} not found.` }); }
 
             // Check if the product quantity is available
-            if( existingProduct.stock < quantity ) {
-                return res.status(200).json({ message: `Product with productId: ${productId} has only ${existingProduct.stock} quantity in Stock.` });
+            if( productFound.stock < quantity ) {
+                return res.status(200).json({ message: `Product with productId: ${productId} has only ${productFound.stock} quantity in Stock.` });
             }
 
 
@@ -100,14 +100,14 @@ const handleAssignProductsToFranchise = async (req, res) => {
                 existingInventoryItem.bvPoints = bvPoints;      // Update bvPoints
                 totalPrice += price*quantity;                   // Calculate Price
             } else {
-                // If product does not exist, add it to the inventory
+                // If product does not exist, add it to the franchie's inventory
                 inventory.products.push({ productId, quantity, price, bvPoints });
                 totalPrice += price*quantity;
             }
 
             assignedProducts.push({ productId, quantity, price, bvPoints });
-            existingProduct.stock -= quantity;
-            await existingProduct.save();
+            productFound.stock -= quantity;
+            await productFound.save();
         }
 
         // Save the updated inventory
