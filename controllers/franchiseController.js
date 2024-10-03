@@ -62,9 +62,7 @@ const handleAssignProductsToFranchise = async (req, res) => {
 
         // Find the franchise by franchiseId
         const franchise = await Franchise.findOne({ franchiseId });
-        if (!franchise) {
-            return res.status(404).json({ message: 'Incorrect FranchiseID' });
-        }
+        if (!franchise) { return res.status(404).json({ message: 'Incorrect FranchiseID' }); }
 
 
         // Find or create the inventory for the franchise
@@ -83,28 +81,33 @@ const handleAssignProductsToFranchise = async (req, res) => {
                 return res.status(400).json({ message: 'Please enter all the Required fields.' });
             }
 
-            // Check if the product exists
+            // Check if the product exists in Products collection
             const existingProduct = await Product.findById(productId);
             if (!existingProduct) { return res.status(404).json({ message: `Product with ID ${productId} not found.` }); }
+
+            // Check if the product quantity is available
+            if( existingProduct.stock < quantity ) {
+                return res.status(200).json({ message: `Product with productId: ${productId} has only ${existingProduct.stock} quantity in Stock.` });
+            }
 
 
             // Add/Update product in the franchise's inventory
             const existingInventoryItem = inventory.products.find(item => item.productId.toString() === productId);
             if (existingInventoryItem) {
                 // If the product already exists in the inventory, update the quantity and other details
-                console.log('Product already in inventory');
-                
-                existingInventoryItem.quantity += quantity;
-                existingInventoryItem.price = price; // Update the price as well
-                totalPrice += price*quantity;
-                if (bvPoints) existingInventoryItem.bvPoints = bvPoints; // Update bvPoints if provided
-                // if (typeof isAvailable === 'boolean') existingInventoryItem.isAvailable = isAvailable; // Update availability
+                existingInventoryItem.quantity += quantity;     // Update quantity
+                existingInventoryItem.price = price;            // Update price
+                existingInventoryItem.bvPoints = bvPoints;      // Update bvPoints
+                totalPrice += price*quantity;                   // Calculate Price
             } else {
                 // If product does not exist, add it to the inventory
                 inventory.products.push({ productId, quantity, price, bvPoints });
+                totalPrice += price*quantity;
             }
 
             assignedProducts.push({ productId, quantity, price, bvPoints });
+            existingProduct.stock -= quantity;
+            await existingProduct.save();
         }
 
         // Save the updated inventory
