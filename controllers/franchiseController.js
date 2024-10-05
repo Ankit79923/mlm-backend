@@ -1,6 +1,7 @@
 const Franchise = require('../models/franchise'); 
 const Product = require('../models/products');
 const Inventory = require('../models/inventory');
+const User = require('../models/users');
 const { generateToken } = require('../middlewares/jwt');
 
 
@@ -229,6 +230,78 @@ const handleLoginFranchise = async (req, res) => {
 
 
 
+// 7. Handle Calculate totall Bill
+const handleCalculateTotalBill = async (req, res) => {
+    try {
+        const { userSponsorId, franchiseId, products } = req.body;
+        if (!franchiseId || !products) { return res.status(400).json({ message: 'Please provide both Franchise ID and Products.' }); }
+
+        // Find user from sponsorId
+        const user = await User.findOne({ mySponsorId: userSponsorId });
+        if (!user) { return res.status(404).json({ message: 'Incorrect sponsorID' }); }
+
+        // Find the franchise by franchiseId
+        // const franchise = await Franchise.findOne({ franchiseId });
+        // if (!franchise) { return res.status(404).json({ message: 'Incorrect FranchiseID' }); }
+
+        // Find the inventory for the franchise
+        let inventory = await Inventory.findOne({ franchiseId: franchiseId });
+        if (!inventory) { return res.status(404).json({ message: 'Inventory not found for the given franchise' }); }
+
+        // products recieved from body is an array, which contains multiple products. Check if all the products recieved exists in body OR not.
+        for (let product of products) {
+            const { productId, quantity } = product;
+            if (!productId || !quantity) { return res.status(400).json({ message: 'Please provide both Product ID and Quantity for each product.' }); }
+            
+            const productFound = inventory.products.find(item => item.productId.toString() === productId);
+            if (!productFound) { return res.status(404).json({ message: `Product with ID ${productId} not found in your inventory.` }); }
+            
+            if (productFound.quantity < quantity) {
+                return res.status(200).json({ message: `Product with productId: ${productId} has only ${productFound.quantity} quantity in Stock.` });
+            }
+        }
+        console.log('All products found in inventory & Stock is also available.');
+        
+
+        // Calculate total bill
+        let totalPrice = 0;
+        for (let product of products) {
+            const { productId, quantity } = product;
+            const productFound = inventory.products.find(item => item.productId.toString() === productId);
+            totalPrice += productFound.price * quantity;
+            
+            // Reduce the product's stock
+            productFound.quantity -= quantity;
+            console.log(productFound.quantity);
+            console.log(productFound.price);
+            
+            
+            await inventory.save();
+
+            // Add BV points to the user
+            const bvPointsEarned = quantity * productFound.bvPoints;
+            user.bvPoints += bvPointsEarned;
+            await user.save();
+            console.log(`User with ID ${user._id} has earned ${bvPointsEarned} BV points.`);
+
+            // Add products purchased to user schema field 'productsPurchased'
+            user.productsPurchased.push({ productId, quantity, price: productFound.price });
+            await user.save();
+            console.log(`User with ID ${user._id} has purchased product with ID ${productId} and quantity ${quantity}.`);
+        }
+
+        return res.status(200).json({ message: 'Total bill calculated successfully', totalPrice });
+    } catch (error) {
+        console.error('Error calculating total bill:', error);
+        return res.status(500).json({ message: 'Internal server error' });
+    }
+}
+
+
+
+
+
+
 
 module.exports = {
     handleCreateFranchise,
@@ -236,5 +309,6 @@ module.exports = {
     handleAssignProductsToFranchise,
     handleGetFranchiesInventory,
     handleRemoveProductFromFranchiseInventory,
-    handleLoginFranchise
+    handleLoginFranchise,
+    handleCalculateTotalBill
 }
