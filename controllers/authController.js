@@ -455,6 +455,94 @@ async function buildTree(user, level = 1) {
 
 
 
+
+// 9. Handle extremeLeft 
+async function handleExtremeLeft(req, res) {
+    try {
+        const { sponsorId } = req.body;
+        console.log(sponsorId);
+        
+        if(!sponsorId) { return res.status(404).json({ message: "Please provide sponsor ID." }); }
+
+        // Find the sponsor
+        const user = await User.findOne({mySponsorId: sponsorId});
+        if (!user) { return res.status(404).json({ message: 'Invalid SponsorId.' }); }
+
+        // Find the extreme left user
+        const extremeLeftUser = await findExtremeLeft(user);
+        
+        // Build the tree
+        const tree = await buildTree(extremeLeftUser);
+        return res.status(200).json(tree);
+    } catch (error) {
+        console.error(error);
+        return res.status(500).json({ message: 'Server error', error: error.message });
+    }
+}
+
+
+
+
+// helper function to find extreme left user
+async function findExtremeLeft(user) {
+    
+    // Base case: If no left child or no binary position, return the current user
+    if (!user.binaryPosition || !user.binaryPosition.left) return user; 
+
+    // Recursively call the function for the left child
+    const leftChild = await User.findById(user.binaryPosition.left);
+    return await findExtremeLeft(leftChild);
+}
+
+
+
+
+
+// 10. Handle extremeRight
+async function handleExtremeRight(req, res) {
+    try {
+        const { sponsorId } = req.body;
+        if(!sponsorId) { return res.status(404).json({ message: "Please provide sponsor ID." }); }
+
+        // Find the sponsor
+        const user = await User.findOne({mySponsorId: sponsorId});
+        if (!user) { return res.status(404).json({ message: 'User not found' }); }
+
+        // Find the extreme right user
+        const extremeRightUser = await findExtremeRight(user);
+        
+        // Build the tree
+        const tree = await buildTree(extremeRightUser);
+        return res.status(200).json(tree);
+    } catch (error) {
+        console.error(error);
+        return res.status(500).json({ message: 'Server error', error: error.message });
+    }
+}
+
+
+
+
+// helper function to find extreme right user
+async function findExtremeRight(user) {
+    
+    // Base case: If no left child or no binary position, return the current user
+    if (!user.binaryPosition || !user.binaryPosition.right) return user; 
+
+    // Recursively call the function for the left child
+    const rightChild = await User.findById(user.binaryPosition.right);
+    return await findExtremeRight(rightChild);
+}
+
+
+
+
+
+
+
+
+
+
 // // 9. Edit user details API
 // async function handleEditUserDetails(req, res) {
 //     try{
@@ -563,4 +651,6 @@ module.exports = {
     handleVerifySponsor,
     handleFindUser,
     handleGetSponsorChildrens,
+    handleExtremeLeft,
+    handleExtremeRight
 }

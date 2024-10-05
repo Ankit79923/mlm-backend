@@ -3,6 +3,7 @@ require('dotenv').config();
 const cookieParser = require('cookie-parser');
 const cors = require('cors');
 const db = require('./config/db_connection');
+const client = require('./config/redis');
 const PORT = process.env.PORT || 3000;
 
 
