@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 
 
-const {handleRegisterUser, handleLoginUser, handleRegisterUsingLeftLink, handleRegisterUsingRightLink, handleFindUser, handleGetSponsorChildrens, handleRegisterFirstUser, handleVerifySponsor, handleExtremeLeft, handleExtremeRight} = require('../controllers/authController');
+const {handleRegisterUser, handleLoginUser, handleRegisterUsingLeftLink, handleRegisterUsingRightLink, handleFindUser, handleGetSponsorChildrens, handleRegisterFirstUser, handleVerifySponsor, handleExtremeLeft, handleExtremeRight, handleGetAllReferrals} = require('../controllers/authController');
 
 
 router.post('/registerFirstUser', handleRegisterFirstUser);
@@ -16,5 +16,6 @@ router.post('/verifySponsor', handleVerifySponsor);
 router.get('/getSponsorChildrens/:id', handleGetSponsorChildrens);
 router.post('/extremeLeft', handleExtremeLeft);
 router.post('/extremeRight', handleExtremeRight);
+router.post('/getDirectReferrals', handleGetAllReferrals);
 
 module.exports = router;
