@@ -562,6 +562,29 @@ async function handleGetAllReferrals(req, res) {
 
 
 
+// 12. Search for a specific sponsorId:  Get all sponsor's children with tree-like structure, upto level 4
+async function handleSearchSpecificUser(req, res) {
+    try {
+        // Find sponsor
+        const sponsor = await User.findOne({ mySponsorId: req.params.sponsorId });
+        if (!sponsor) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+
+        // Build the tree
+        const tree = await buildTree(sponsor);
+
+        // Return the tree
+        return res.status(200).json(tree);
+
+    } catch (error) {
+        console.error(error);
+        return res.status(500).json({ message: 'Server error', error: error.message });
+    }
+}
+
+
+
 
 // // 9. Edit user details API
 // async function handleEditUserDetails(req, res) {
@@ -673,5 +696,6 @@ module.exports = {
     handleGetSponsorChildrens,
     handleExtremeLeft,
     handleExtremeRight,
-    handleGetAllReferrals
+    handleGetAllReferrals,
+    handleSearchSpecificUser
 }

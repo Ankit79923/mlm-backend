@@ -3,7 +3,7 @@ const router = express.Router();
 
 const { generateToken, verifyTokenMiddleware, isAdminMiddleware } = require('../middlewares/jwt');
 const { handleViewProducts, handleGetProductById, handleAddProductsToCart, handleAddProductToWishlist, handleAddProductToCart } = require('../controllers/productController');
-const { handleGetSponsorChildrens, handleExtremeLeft, handleExtremeRight, handleGetAllReferrals } = require('../controllers/authController');
+const { handleGetSponsorChildrens, handleExtremeLeft, handleExtremeRight, handleGetAllReferrals, handleSearchSpecificUser } = require('../controllers/authController');
 
 
 
@@ -19,6 +19,7 @@ router.get('/getSponsorChildrens/:id', handleGetSponsorChildrens);
 router.post('/extremeLeft', handleExtremeLeft);
 router.post('/extremeRight', handleExtremeRight);
 router.post('/getDirectReferrals', handleGetAllReferrals);
+router.get('/searchUserInGenealogyTree/:sponsorId', handleSearchSpecificUser);
 
 
 module.exports = router;
