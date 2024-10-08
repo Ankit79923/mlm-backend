@@ -1,4 +1,4 @@
-const User = require('../models/users');
+const User = require('../models/user-models/users');
 const { findPositionAndAttach, placeInLeftSideOfTree, placeInRightSideOfTree } = require('../utils/placeInBinaryTree');
 const { generateToken, verifyTokenMiddleware } = require('../middlewares/jwt');
 const generateUniqueSponsorID = require('../utils/generateUniqueSponsorId');

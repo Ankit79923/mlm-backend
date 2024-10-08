@@ -1,4 +1,4 @@
-const Admin = require('../models/admin');
+const Admin = require('../models/admin-models/admin');
 const { generateToken, verifyTokenMiddleware, isAdminMiddleware } = require('../middlewares/jwt');
 
 

@@ -1,7 +1,7 @@
-const Franchise = require('../models/franchise'); 
-const Product = require('../models/products');
-const Inventory = require('../models/inventory');
-const User = require('../models/users');
+const Franchise = require('../models/franchise-models/franchise'); 
+const Product = require('../models/admin-models/products');
+const Inventory = require('../models/franchise-models/inventory');
+const User = require('../models/user-models/users');
 const { generateToken } = require('../middlewares/jwt');
 
 
