@@ -141,10 +141,11 @@ const handleGetFranchiesInventory = async (req, res) => {
             return res.status(200).json({ message: 'inventory not found' });
         }
 
-        // Return the inventory
-        return res.status(200).json(inventory.products);
+        // Fetch product details from Products collection
+        const products = await Product.find({ _id: { $in: inventory.products.map(item => item.productId) } });
+        return res.status(200).json(products);
     } catch (e) {
-        console.log(error.message);
+        console.log(e.message);
         return res.status(500).json({message: 'Error finding Inventory', error: e.message});
     }
 }
@@ -204,12 +205,12 @@ const handleRemoveProductFromFranchiseInventory = async (req, res) => {
 // 6. Handle Login franchise
 const handleLoginFranchise = async (req, res) => {
     try {
-        const { email, password } = req.body;
-        if ( !email || !password ) { return res.status(400).json({ message: 'Please provide both email and password' }); }
+        const { franchiseId, password } = req.body;
+        if ( !franchiseId || !password ) { return res.status(400).json({ message: 'Please provide both franchiseId and password.' }); }
 
         // Find the franchise by email
-        const franchise = await Franchise.findOne({ email });
-        if (!franchise) { return res.status(401).json({ message: 'Invalid email ' }); }
+        const franchise = await Franchise.findOne({ franchiseId });
+        if (!franchise) { return res.status(401).json({ message: 'Invalid franchiseId.' }); }
 
         // Check the password
         const isPasswordMatch = await franchise.comparePassword(password);
@@ -218,7 +219,7 @@ const handleLoginFranchise = async (req, res) => {
             const token = generateToken(payload);
             return res.json({ token, userId: franchise._id, name: franchise.franchiseName });
         } else {
-            return res.status(404).json({ message: 'Invalid email or password.' });
+            return res.status(404).json({ message: 'Invalid franchiseId or password.' });
         }
     } catch (error) {
         console.error('Error logging in franchise:', error);
@@ -241,11 +242,11 @@ const handleCalculateTotalBill = async (req, res) => {
         if (!user) { return res.status(404).json({ message: 'Incorrect sponsorID' }); }
 
         // Find the franchise by franchiseId
-        // const franchise = await Franchise.findOne({ franchiseId });
-        // if (!franchise) { return res.status(404).json({ message: 'Incorrect FranchiseID' }); }
+        const franchise = await Franchise.findOne({ franchiseId });
+        if (!franchise) { return res.status(404).json({ message: 'Incorrect FranchiseID' }); }
 
         // Find the inventory for the franchise
-        let inventory = await Inventory.findOne({ franchiseId: franchiseId });
+        let inventory = await Inventory.findOne({ franchiseId: franchise._id });
         if (!inventory) { return res.status(404).json({ message: 'Inventory not found for the given franchise' }); }
 
         // products recieved from body is an array, which contains multiple products. Check if all the products recieved exists in body OR not.
@@ -272,10 +273,6 @@ const handleCalculateTotalBill = async (req, res) => {
             
             // Reduce the product's stock
             productFound.quantity -= quantity;
-            console.log(productFound.quantity);
-            console.log(productFound.price);
-            
-            
             await inventory.save();
 
             // Add BV points to the user
