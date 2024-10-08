@@ -1,7 +1,6 @@
 const User = require('../models/user-models/users');
 const Product = require('../models/admin-models/products');
 const Wishlist = require('../models/user-models/wishlists');
-const Cart = require('../models/cart');
 const { generateToken, verifyTokenMiddleware } = require('../middlewares/jwt');
 
 
