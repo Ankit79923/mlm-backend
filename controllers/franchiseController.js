@@ -151,7 +151,7 @@ const handleGetFranchiesInventory = async (req, res) => {
 }
 
 
-
+ 
 
 
 // 5. Remove Product from Franchise Inventory - only by admin
