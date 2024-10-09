@@ -56,6 +56,7 @@ async function handleRegisterFirstUser(req, res) {
                 address,
                 gstNumber, // optional
                 password,
+                parentSponsorId: '',
                 mySponsorId: generatedSponsorId,
                 leftRefferalLink,
                 rightRefferalLink
@@ -126,7 +127,6 @@ async function handleRegisterUser(req, res) {
         
 
         // Generate a unique mySponsorId
-        // let generatedSponsorId = uuidv4().slice(0, 10);
         let generatedSponsorId = await generateUniqueSponsorID();
         const leftRefferalLink = `${process.env.DOMAIN_URL}/signupleft/${generatedSponsorId}`;
         const rightRefferalLink = `${process.env.DOMAIN_URL}/signupright/${generatedSponsorId}`;
@@ -147,6 +147,7 @@ async function handleRegisterUser(req, res) {
             address,
             gstNumber, // optional
             password,
+            parentSponsorId: '',
             mySponsorId: generatedSponsorId,
             leftRefferalLink,
             rightRefferalLink
@@ -236,6 +237,7 @@ async function handleRegisterUsingLeftLink(req, res) {
             address,
             gstNumber, // optional
             password,
+            parentSponsorId: '',
             mySponsorId: generatedSponsorId,
             leftRefferalLink,
             rightRefferalLink
@@ -324,6 +326,7 @@ async function handleRegisterUsingRightLink(req, res) {
             address,
             gstNumber, // optional
             password,
+            parentSponsorId: '',
             mySponsorId: generatedSponsorId,
             leftRefferalLink,
             rightRefferalLink

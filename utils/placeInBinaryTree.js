@@ -43,6 +43,11 @@ async function placeInLeftSideOfTree(sponsor, newUser) {
             // attach new user at this position
             sponsor.binaryPosition.left = newUser._id;
             await sponsor.save();
+
+            // Update new user parentSponsorId
+            newUser.parentSponsorId = sponsor.mySponsorId;
+            await newUser.save();
+
             return sponsor;
         } else {
             // recursively check the tree
@@ -57,6 +62,11 @@ async function placeInRightSideOfTree(sponsor, newUser ) {
         // attach new user at this position
         sponsor.binaryPosition.right = newUser._id;
         await sponsor.save();
+
+        // Update new user parentSponsorId
+        newUser.parentSponsorId = sponsor.mySponsorId;
+        await newUser.save();
+
         return sponsor;
     } else {
         // recursively check the tree

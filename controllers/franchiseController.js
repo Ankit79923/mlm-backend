@@ -1,6 +1,7 @@
 const Franchise = require('../models/franchise-models/franchise'); 
 const Product = require('../models/admin-models/products');
 const Inventory = require('../models/franchise-models/inventory');
+const BVPoints = require('../models/user-models/bvPoints');
 const User = require('../models/user-models/users');
 const { generateToken } = require('../middlewares/jwt');
 
@@ -261,11 +262,12 @@ const handleCalculateTotalBill = async (req, res) => {
                 return res.status(200).json({ message: `Product with productId: ${productId} has only ${productFound.quantity} quantity in Stock.` });
             }
         }
-        console.log('All products found in inventory & Stock is also available.');
+        // console.log('All products found in inventory & Stock is also available.');
         
 
         // Calculate total bill
         let totalPrice = 0;
+        let totalBvPoints = 0;
         for (let product of products) {
             const { productId, quantity } = product;
             const productFound = inventory.products.find(item => item.productId.toString() === productId);
@@ -275,17 +277,18 @@ const handleCalculateTotalBill = async (req, res) => {
             productFound.quantity -= quantity;
             await inventory.save();
 
-            // Add BV points to the user
+            // Total bv points earned in this purchase
             const bvPointsEarned = quantity * productFound.bvPoints;
-            user.bvPoints += bvPointsEarned;
-            await user.save();
-            console.log(`User with ID ${user._id} has earned ${bvPointsEarned} BV points.`);
+            totalBvPoints += bvPointsEarned;
 
             // Add products purchased to user schema field 'productsPurchased'
             user.productsPurchased.push({ productId, quantity, price: productFound.price });
             await user.save();
-            console.log(`User with ID ${user._id} has purchased product with ID ${productId} and quantity ${quantity}.`);
+
+            // console.log(`User with ID ${user._id} has purchased product with ID ${productId} and quantity ${quantity}.`);
         }
+
+        await addBvPointsToAncestors(user, totalBvPoints);
 
         return res.status(200).json({ message: 'Total bill calculated successfully', totalPrice });
     } catch (error) {
@@ -295,9 +298,62 @@ const handleCalculateTotalBill = async (req, res) => {
 }
 
 
+async function addBvPointsToAncestors(user, totalBvPoints) {
+    try {
+        let currentUser = user;
+        
+        while (currentUser.parentSponsorId) {                                                                    // Traverse through the ancestors and update their BV points
+            const ancestor = await User.findOne({ mySponsorId: currentUser.parentSponsorId });
+            if (!ancestor) break;
+
+            // Find BV Points document for ancestor
+            let ancestorBVPoints = await BVPoints.findOne({ userId: ancestor._id });
+            if (!ancestorBVPoints) {
+                // If BVPoints document doesn't exist, create a new one
+                ancestorBVPoints = new BVPoints({ userId: ancestor._id });
+            }
+
+            // Check if current user (purchaser) is in the left or right subtree of ancestor
+            const isInLeftTree = await checkIfInLeftTree(ancestor, currentUser);
+            if (isInLeftTree)  { ancestorBVPoints.leftBV += totalBvPoints; } 
+            else  { ancestorBVPoints.rightBV += totalBvPoints; }
+
+            // Save updated BVPoints for ancestor
+            await ancestorBVPoints.save();
+
+            // Move to the next ancestor (parent of the current ancestor)
+            currentUser = ancestor;
+        }
+
+        console.log('BV points successfully added to ancestors.');
+    } catch (error) {
+        console.error('Error while adding BV points to ancestors:', error);
+    }
+};
 
 
-// Handle find all users
+
+async function checkIfInLeftTree(ancestor, user) {
+    if (ancestor.binaryPosition) {
+        // Check if the user's ID matches the left child's ID
+        if (ancestor.binaryPosition.left && ancestor.binaryPosition.left.toString() === user._id.toString()) {
+            return true;
+        }
+        // Check if the user's ID matches the right child's ID
+        else if (ancestor.binaryPosition.right && ancestor.binaryPosition.right.toString() === user._id.toString()) {
+            return false;
+        }
+    }
+    
+    return false;
+}
+
+
+
+
+
+
+// 8. Handle find all users
 const handleGetAllUsers = async (req, res) => {
     try {
         const users = await User.find({}, 'name mySponsorId');

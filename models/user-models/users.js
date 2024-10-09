@@ -61,6 +61,10 @@ const userSchema = new mongoose.Schema({
     required: true
   },
   // ---------------------------------------------------------------------------------------------------------------------
+  parentSponsorId: {
+    type: String,
+    default: null,
+  },
   mySponsorId: {
     type: String,
     required: true,
