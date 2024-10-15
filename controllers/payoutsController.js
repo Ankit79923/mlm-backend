@@ -9,26 +9,20 @@ const handleGetWeeklyPayoutsDetails = async (req, res) => {
 
     // Find user
     const user = await User.findOne({ _id: id });
-    if (!user) {
-      return res.status(404).json({ message: "User not found" });
-    }
+    if (!user) { return res.status(404).json({ message: "User not found" }); }
+
 
     // Fetch the BVPoints document for the given userId
     const bvPoints = await BVPoints.findOne({ userId: id })
       .select("weeklyEarnings userId") // Only selecting needed fields
       .exec();
 
+
     // Check if BVPoints data exists for the user
-    if (!bvPoints) {
-      return res.status(404).json({ message: "No BV points available." });
-    }
+    if (!bvPoints) { return res.status(404).json({ message: "No BV points available." }); }
 
     // Check if the user has any weekly earnings
-    if (bvPoints.weeklyEarnings.length === 0) {
-      return res
-        .status(404)
-        .json({ message: "No weekly earnings data available" });
-    }
+    if (bvPoints.weeklyEarnings.length === 0) { return res.status(404).json({ message: "No weekly earnings data available" }); }
 
     // Format and return the response
     res.status(200).json({

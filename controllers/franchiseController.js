@@ -255,7 +255,10 @@ const handleCalculateTotalBill = async (req, res) => {
             const { productId, quantity } = product;
             if (!productId || !quantity) { return res.status(400).json({ message: 'Please provide both Product ID and Quantity for each product.' }); }
             
-            const productFound = inventory.products.find(item => item.productId.toString() === productId);
+            // const productFound = inventory.products.find(item => item.productId.toString() === productId);
+            const productFound = inventory.products.find( function(item) {
+                return item.productId.toString() === productId;
+            } );
             if (!productFound) { return res.status(404).json({ message: `Product with ID ${productId} not found in your inventory.` }); }
             
             if (productFound.quantity < quantity) {
@@ -271,7 +274,6 @@ const handleCalculateTotalBill = async (req, res) => {
         for (let product of products) {
             const { productId, quantity } = product;
             const productFound = inventory.products.find(item => item.productId.toString() === productId);
-            totalPrice += productFound.price * quantity;
             
             // Reduce the product's stock
             productFound.quantity -= quantity;
@@ -280,6 +282,7 @@ const handleCalculateTotalBill = async (req, res) => {
             // Total bv points earned in this purchase
             const bvPointsEarned = quantity * productFound.bvPoints;
             totalBvPoints += bvPointsEarned;
+            totalPrice += productFound.price * quantity;
 
             // Add products purchased to user schema field 'productsPurchased'
             user.productsPurchased.push({ productId, quantity, price: productFound.price });

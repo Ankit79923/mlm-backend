@@ -1,8 +1,9 @@
 const mongoose = require('mongoose');
 
+
 const weeklyEarningsSchema = new mongoose.Schema({
   week: {
-    type: Date,
+    type: String,
     required: true
   },
   matchedBV: {
@@ -28,6 +29,7 @@ const weeklyEarningsSchema = new mongoose.Schema({
     }
   }
 });
+
 
 const bvPointsSchema = new mongoose.Schema({
   userId: {
@@ -57,8 +59,10 @@ const bvPointsSchema = new mongoose.Schema({
       default: 0
     }
   },
-  weeklyEarnings: [weeklyEarningsSchema]
+  weeklyEarnings: [weeklyEarningsSchema],
+  // monthlyEarnings: [monthlyEarningsSchema]
 });
+
 
 const BVPoints = mongoose.model('BVPoints', bvPointsSchema);
 
