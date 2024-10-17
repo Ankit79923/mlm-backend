@@ -76,28 +76,115 @@ async function placeInRightSideOfTree(sponsor, newUser ) {
 }
 
 
-async function countLeftChild(sponsor) {
+
+const countLeftChild = async (user) => {
     let count = 0;
-    if (sponsor.binaryPosition.left) {
-        const leftChild = await User.findById(sponsor.binaryPosition.left);
-        count += 1 + await countLeftChild(leftChild);
+  
+    // Recursive helper function to traverse only the left side of the tree
+    const countLeftSubtree = async (currentUser) => {
+      if (!currentUser) return;
+  
+      // Increment count for the current user
+      count++;
+  
+      // If there is a left child, keep counting in the left subtree
+      if (currentUser.binaryPosition.left) {
+        const leftChild = await User.findById(currentUser.binaryPosition.left);
+        console.log(currentUser.binaryPosition.left);
+        
+        if (leftChild) {
+          await countLeftSubtree(leftChild); // Recursively count the left subtree
+        }
+      }
+  
+      // If there is a right child, also count in the right subtree (still part of left tree)
+      if (currentUser.binaryPosition.right) {
+        const rightChild = await User.findById(currentUser.binaryPosition.right);
+        console.log(currentUser.binaryPosition.right);
+        
+        if (rightChild) {
+          await countLeftSubtree(rightChild); // Recursively count the right subtree
+        }
+      }
+    };
+  
+    // Start counting from the left child of the user
+    if (user.binaryPosition.left) {
+      const leftChild = await User.findById(user.binaryPosition.left);
+      if (leftChild) {
+        await countLeftSubtree(leftChild);
+      }
     }
+  
     return count;
-}
+};
+  
+  
+const countRightChild = async (user) => {
+    let count = 0;
+  
+    // Recursive helper function to traverse the right subtree only
+    const countRightSubtree = async (currentUser) => {
+      if (!currentUser) return;
+  
+      // Increment the count for the current user
+      count++;
+  
+      // If there is a right child, keep counting in the right subtree
+      if (currentUser.binaryPosition.right) {
+        const rightChild = await User.findById(currentUser.binaryPosition.right);
+        if (rightChild) {
+          await countRightSubtree(rightChild); // Recursively count the right subtree
+        }
+      }
+  
+      // If there is a left child of the right subtree, count it as well
+      if (currentUser.binaryPosition.left) {
+        const leftChild = await User.findById(currentUser.binaryPosition.left);
+        if (leftChild) {
+          await countRightSubtree(leftChild); // Recursively count the left subtree in right tree
+        }
+      }
+    };
+  
+    // Start counting from the right child of the user
+    if (user.binaryPosition.right) {
+      const rightChild = await User.findById(user.binaryPosition.right);
+      if (rightChild) {
+        await countRightSubtree(rightChild);
+      }
+    }
+  
+    return count;
+};
 
 
-async function countRightChild(sponsor) {
-    let count = 0;
-    if (sponsor.binaryPosition.right) {
-        const rightChild = await User.findById(sponsor.binaryPosition.right);
-        count += 1 + await countRightChild(rightChild);
-    }
-    return count;
-}
+
+
+// async function countLeftChild(sponsor) {
+//     let count = 0;
+//     if (sponsor.binaryPosition.left) {
+//         const leftChild = await User.findById(sponsor.binaryPosition.left);
+//         count += 1 + await countLeftChild(leftChild);
+//     }
+//     return count;
+// }
+
+
+// async function countRightChild(sponsor) {
+//     let count = 0;
+//     if (sponsor.binaryPosition.right) {
+//         const rightChild = await User.findById(sponsor.binaryPosition.right);
+//         count += 1 + await countRightChild(rightChild);
+//     }
+//     return count;
+// }
 
 
 module.exports = {
     findPositionAndAttach,
     placeInLeftSideOfTree,
-    placeInRightSideOfTree
+    placeInRightSideOfTree,
+    countLeftChild,
+    countRightChild
 };

@@ -4,6 +4,7 @@ const router = express.Router();
 const { generateToken, verifyTokenMiddleware, isAdminMiddleware } = require('../middlewares/jwt');
 const { handleViewProducts, handleGetProductById, handleAddProductsToCart, handleAddProductToWishlist, handleAddProductToCart } = require('../controllers/productController');
 const { handleGetSponsorChildrens, handleExtremeLeft, handleExtremeRight, handleGetAllReferrals, handleSearchSpecificUser } = require('../controllers/authController');
+const { handleGetDashboardData } = require('../controllers/payoutsController');
 
 
 
@@ -20,6 +21,9 @@ router.post('/extremeLeft', handleExtremeLeft);
 router.post('/extremeRight', handleExtremeRight);
 router.post('/getDirectReferrals', handleGetAllReferrals);
 router.get('/searchUserInGenealogyTree/:sponsorId', handleSearchSpecificUser);
+
+
+router.post('/getDashboardData', handleGetDashboardData);
 
 
 module.exports = router;

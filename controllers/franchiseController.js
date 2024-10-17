@@ -318,8 +318,14 @@ async function addBvPointsToAncestors(user, totalBvPoints) {
 
             // Check if current user (purchaser) is in the left or right subtree of ancestor
             const isInLeftTree = await checkIfInLeftTree(ancestor, currentUser);
-            if (isInLeftTree)  { ancestorBVPoints.leftBV += totalBvPoints; } 
-            else  { ancestorBVPoints.rightBV += totalBvPoints; }
+            if (isInLeftTree)  { 
+                ancestorBVPoints.leftBV += totalBvPoints; 
+                ancestorBVPoints.currentMonthBV.leftBV += totalBvPoints;
+            } 
+            else  { 
+                ancestorBVPoints.rightBV += totalBvPoints; 
+                ancestorBVPoints.currentMonthBV.rightBV += totalBvPoints;
+            }
 
             // Save updated BVPoints for ancestor
             await ancestorBVPoints.save();
@@ -381,3 +387,5 @@ module.exports = {
     handleCalculateTotalBill,
     handleGetAllUsers
 }
+
+

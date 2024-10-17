@@ -1,6 +1,7 @@
 const User = require("../models/user-models/users");
 const BVPoints = require("../models/user-models/bvPoints");
 const mongoose = require("mongoose");
+const { countLeftChild, countRightChild } = require('../utils/placeInBinaryTree');
 
 // 1. Get weekly payout detaills
 const handleGetWeeklyPayoutsDetails = async (req, res) => {
@@ -45,74 +46,75 @@ const handleGetWeeklyPayoutsDetails = async (req, res) => {
 
 
 
-// 2. Calculate the weekely payout - POST /api/payouts/calculate/{week}
-const handleCalculateWeekelyPayout = async (req, res) => {
+
+
+
+const handleGetDashboardData = async (req, res) => {
   try {
-    const { week } = req.params;
-    const weekDate = new Date(week);
-    // console.log(week);
-    // console.log(weekDate);
+    // Find user from received sponsorId
+    const user = await User.findOne({ mySponsorId: req.body.sponsorId });
+    if (!user) {
+      return res.status(404).json({ message: 'Incorrect sponsorId' });
+    }
+
+    // Initialize earnings variables
+    let weeklyEarning = 0;
+    let monthlyEarning = 0;
+    let lifetimeEarning = 0;
+
+    // Consider user as root or head & then find total number of users in left and right tree
+    let leftTreeUsersCount = await countLeftChild(user);
+    let rightTreeUsersCount = await countRightChild(user);
+    console.log(leftTreeUsersCount, rightTreeUsersCount);
     
-    // Validate if the provided week is a valid date
-    if (isNaN(weekDate.getTime())) {
-      return res.status(400).json({ message: "Invalid date format" });
+
+    // Fetch the BVPoints document for the given userId
+    const bvPoints = await BVPoints.findOne({ userId: user._id });
+    if (!bvPoints) {
+      // Return 0 earnings if bvPoints is not available
+      return res.status(200).json({
+        weeklyEarning,
+        monthlyEarning,
+        lifetimeEarning,
+        leftTreeUsersCount,
+        rightTreeUsersCount
+      });
     }
 
-    // Find all users and process their BV points for payout calculation
-    const users = await BVPoints.find().exec();
-
-    // Iterate through each user and calculate payout based on their BV points
-    for (const user of users) {
-      const { leftBV, rightBV } = user;
-
-      // Calculate matched BV, payout, and carry-forward BV
-      const { matchedBV, payoutAmount, carryForwardBV } = calculatePayout( leftBV, rightBV);
-
-      // Create a new weekly earning entry
-      const newEarning = {
-        week: weekDate,
-        matchedBV,
-        payoutAmount,
-        carryForwardBV,
-      };
-
-      // Update the user's weekly earnings and carry-forward BV
-      user.weeklyEarnings.push(newEarning);
-      user.leftBV = carryForwardBV.left;
-      user.rightBV = carryForwardBV.right;
-
-      // Save the updated user document
-      await user.save();
+    // Calculate weekly earnings from the most recent week
+    if (bvPoints.weeklyEarnings && bvPoints.weeklyEarnings.length > 0) {
+      const lastWeeklyEarning = bvPoints.weeklyEarnings[bvPoints.weeklyEarnings.length - 1];
+      weeklyEarning = lastWeeklyEarning.payoutAmount;
     }
 
-    // Send success response
-    res.status(200).json({
-      message: `Payout calculated successfully for the week`,
-      week: week,
+    // Calculate monthly earnings from the most recent month
+    if (bvPoints.monthlyEarnings && bvPoints.monthlyEarnings.length > 0) {
+      const lastMonthlyEarning = bvPoints.monthlyEarnings[bvPoints.monthlyEarnings.length - 1];
+      monthlyEarning = lastMonthlyEarning.payoutAmount;
+    }
+
+    // Calculate lifetime earnings as the sum of all monthly earnings
+    if (bvPoints.monthlyEarnings && bvPoints.monthlyEarnings.length > 0) {
+      lifetimeEarning = bvPoints.monthlyEarnings.reduce((acc, earning) => acc + earning.payoutAmount, 0);
+    }
+
+    // Return the calculated earnings and tree user counts
+    return res.status(200).json({
+      weeklyEarning,
+      monthlyEarning,
+      lifetimeEarning,
+      leftTreeUsersCount,
+      rightTreeUsersCount
     });
-  } catch (err) {
-    console.error("Error calculating payouts:", err);
+  
+  } catch (error) {
+    console.error("Error fetching dashboard data:", error);
     res.status(500).json({ message: "Internal server error" });
   }
 };
 
 
 
-// Helper function to calculate the payout and carry-forward BV
-const calculatePayout = (leftBV, rightBV) => {
-  const matchedBV = Math.min(leftBV, rightBV);
-  const payoutAmount = matchedBV * 0.1; // Payout is 10% of the matched BV
-  const carryForwardBV = {
-    left: leftBV - matchedBV,
-    right: rightBV - matchedBV,
-  };
-
-  return {
-    matchedBV,
-    payoutAmount,
-    carryForwardBV,
-  };
-};
 
 
 
@@ -122,5 +124,5 @@ const calculatePayout = (leftBV, rightBV) => {
 
 module.exports = {
   handleGetWeeklyPayoutsDetails,
-  handleCalculateWeekelyPayout
+  handleGetDashboardData,
 };
