@@ -38,7 +38,7 @@ cron.schedule('0 0 1 * *', () => {
 //     console.log('Running function to calculate monthly payout'); 
 //     calculateMonthlyPayout(); 
 // }, { scheduled: true, timezone: "IST" });
-//
+
 // cron.schedule('* * * * *', () => { 
 //     console.log('Running function to calculate weekly payout'); 
 //     calculateWeekelyPayout(); 

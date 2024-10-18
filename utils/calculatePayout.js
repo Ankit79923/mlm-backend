@@ -89,14 +89,15 @@ const calculateMonthlyPayout = async function (req, res) {
         const { leftBV, rightBV } = user.currentMonthBV;
 
         // Calculate Monthly payoutAmount
-        const payoutAmount = Math.min(leftBV, rightBV) * 0.1;
+        const matchedBV = Math.min(leftBV, rightBV);
+        const payoutAmount = matchedBV * 0.1;
 
         // Create & save new monthly earning entry
         const newMonthlyEarning = { month: todayDate, payoutAmount };
         user.monthlyEarnings.push(newMonthlyEarning);
         // Reset user's currentMonthBV
-        user.currentMonthBV.leftBV = 0;
-        user.currentMonthBV.rightBV = 0;
+        user.currentMonthBV.leftBV -= matchedBV;
+        user.currentMonthBV.rightBV -= matchedBV;
         // Save doc
         await user.save();
       }
