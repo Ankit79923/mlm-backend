@@ -304,6 +304,7 @@ const handleCalculateTotalBill = async (req, res) => {
 async function addBvPointsToAncestors(user, totalBvPoints) {
     try {
         let currentUser = user;
+        let rcvdSponsorId = user.sponsorId;
         
         while (currentUser.parentSponsorId) {                                                                    // Traverse through the ancestors and update their BV points
             const ancestor = await User.findOne({ mySponsorId: currentUser.parentSponsorId });
@@ -316,19 +317,31 @@ async function addBvPointsToAncestors(user, totalBvPoints) {
                 ancestorBVPoints = new BVPoints({ userId: ancestor._id });
             }
 
+
             // Check if current user (purchaser) is in the left or right subtree of ancestor
             const isInLeftTree = await checkIfInLeftTree(ancestor, currentUser);
             if (isInLeftTree)  { 
-                ancestorBVPoints.leftBV += totalBvPoints; 
+                ancestorBVPoints.totalBV.leftBV += totalBvPoints; 
+                ancestorBVPoints.currentWeekBV.leftBV += totalBvPoints;
                 ancestorBVPoints.currentMonthBV.leftBV += totalBvPoints;
+                await ancestorBVPoints.save();
             } 
             else  { 
-                ancestorBVPoints.rightBV += totalBvPoints; 
+                ancestorBVPoints.totalBV.rightBV += totalBvPoints; 
+                ancestorBVPoints.currentWeekBV.rightBV += totalBvPoints;
                 ancestorBVPoints.currentMonthBV.rightBV += totalBvPoints;
+                await ancestorBVPoints.save();
             }
 
-            // Save updated BVPoints for ancestor
-            await ancestorBVPoints.save();
+            if (ancestor.mySponsorId === rcvdSponsorId) {
+                // This ancestor is the sponsor of buyer.
+                // add Direct BV Points to ancestors bvPoints Schema.
+                // Check if current user (purchaser) is in the left or right subtree of ancestor
+                if (isInLeftTree)  { ancestorBVPoints.directBV.leftBV += totalBvPoints; } 
+                else { ancestorBVPoints.directBV.rightBV += totalBvPoints; }
+                await ancestorBVPoints.save();
+            }
+
 
             // Move to the next ancestor (parent of the current ancestor)
             currentUser = ancestor;

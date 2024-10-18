@@ -1,11 +1,11 @@
-// const express = require('express');
-// const router = express.Router();
+const express = require('express');
+const router = express.Router();
 
-// const { handleGetWeeklyPayoutsDetails, handleCalculateWeekelyPayout  } = require('../controllers/payoutsController');
+const { handleGetWeeklyPayoutsDetails, handleCalculateWeekelyPayout  } = require('../controllers/payoutsController');
 
 
-// router.get('/weekly/:id', handleGetWeeklyPayoutsDetails);
+router.get('/weekly/:id', handleGetWeeklyPayoutsDetails);
 // router.post('/calculate/:week', handleCalculateWeekelyPayout);
 
 
-// module.exports = router;
+module.exports = router;

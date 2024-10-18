@@ -32,10 +32,6 @@ const handleGetWeeklyPayoutsDetails = async (req, res) => {
         week: earning.week.toISOString().split("T")[0], // Formatting date to "YYYY-MM-DD"
         matchedBV: earning.matchedBV,
         payoutAmount: earning.payoutAmount,
-        carryForwardBV: {
-          left: earning.carryForwardBV.left,
-          right: earning.carryForwardBV.right,
-        },
       })),
     });
   } catch (err) {
@@ -98,13 +94,31 @@ const handleGetDashboardData = async (req, res) => {
       lifetimeEarning = bvPoints.monthlyEarnings.reduce((acc, earning) => acc + earning.payoutAmount, 0);
     }
 
+    const totalBVPointsEarned = {
+      leftBV: bvPoints.totalBV.leftBV,
+      rightBV: bvPoints.totalBV.rightBV
+    }
+
+    const totalDirectBV = {
+      leftDirectBV: bvPoints.directBV.leftBV,
+      rightDirectBV: bvPoints.directBV.rightBV
+    }
+
+    // const totalDirectTeam = {
+    //   leftDirectTeam: 1,
+    //   rightDirectTeam: 1,
+    // }
+
     // Return the calculated earnings and tree user counts
     return res.status(200).json({
       weeklyEarning,
       monthlyEarning,
       lifetimeEarning,
       leftTreeUsersCount,
-      rightTreeUsersCount
+      rightTreeUsersCount,
+      totalBVPointsEarned,
+      totalDirectBV,
+      // totalDirectTeam,
     });
   
   } catch (error) {

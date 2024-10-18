@@ -7,32 +7,30 @@ const BVPoints = require('../models/user-models/bvPoints');
 const calculateWeekelyPayout = async (req, res) => {
   try {
     // Get the current week's date
-    const todayDate = getTodayDate();
+    const todayDate = new Date();
 
     // Find all users and process their BV points for payout calculation
     const users = await BVPoints.find();
 
     // Iterate through each user and calculate payout based on their BV points
     for (const user of users) {
-      const { leftBV, rightBV } = user;
+      const { leftBV, rightBV } = user.currentWeekBV;
 
-      // Calculate matched BV, payout, and carry-forward BV
-      const { matchedBV, payoutAmount, carryForwardBV } = calculatePayout(leftBV, rightBV);
+      // Calculate matched BV & payout
+      const matchedBV = Math.min(leftBV, rightBV);
+      const payoutAmount = matchedBV * 0.1;
 
       // Create a new weekly earning entry
       const newEarning = {
         week: todayDate,
         matchedBV,
-        payoutAmount,
-        carryForwardBV
+        payoutAmount
       };
 
       // Update the user's weekly earnings and carry-forward BV
       user.weeklyEarnings.push(newEarning);
-      user.leftBV = carryForwardBV.left;
-      user.rightBV = carryForwardBV.right;
-
-      // Save the updated user document
+      user.currentWeekBV.leftBV -= matchedBV;
+      user.currentWeekBV.rightBV -= matchedBV;
       await user.save();
     }
 
@@ -45,46 +43,16 @@ const calculateWeekelyPayout = async (req, res) => {
 
 
 
-// Get Today's date: DD-MM-YYYY
-const getTodayDate = function() {
-    const today = new Date();
-    const dd = String(today.getDate()).padStart(2, '0');
-    const mm = String(today.getMonth() + 1).padStart(2, '0');
-    const yyyy = today.getFullYear();
-    return `${dd}-${mm}-${yyyy}`;
-};
-
-
-
-// Helper function to calculate payout and carry-forward BV
-const calculatePayout = (leftBV, rightBV) => {
-    const matchedBV = Math.min(leftBV, rightBV);
-    const payoutAmount = matchedBV * 0.1; // Payout is 10% of the matched BV
-    const carryForwardBV = {
-      left: leftBV - matchedBV,
-      right: rightBV - matchedBV,
-    };
-  
-    return {
-      matchedBV,
-      payoutAmount,
-      carryForwardBV,
-    };
-};
-
-
-
-
-// ------------------------ 2. Calculate Monthly Payout --------------------------
+// 2. Calculate Monthly Payout
 const calculateMonthlyPayout = async function (req, res) {
     try {
       // Get the today's date
-      const todayDate = getTodayDate();
+      const todayDate = new Date();
         
       // Find all users
       const users = await BVPoints.find();
 
-      // Iterate through each user and calculate MONTHLY payout based on
+      // Iterate through each user and calculate MONTHLY payout
       for (const user of users) {
         const { leftBV, rightBV } = user.currentMonthBV;
 
