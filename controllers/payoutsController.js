@@ -44,7 +44,7 @@ const handleGetWeeklyPayoutsDetails = async (req, res) => {
 
 
 
-
+// 2. Get Dashboard data
 const handleGetDashboardData = async (req, res) => {
   try {
     // Find user from received sponsorId
