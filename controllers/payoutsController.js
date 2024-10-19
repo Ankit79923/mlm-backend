@@ -3,48 +3,8 @@ const BVPoints = require("../models/user-models/bvPoints");
 const mongoose = require("mongoose");
 const { countLeftChild, countRightChild } = require('../utils/placeInBinaryTree');
 
-// 1. Get weekly payout detaills
-const handleGetWeeklyPayoutsDetails = async (req, res) => {
-  try {
-    const { id } = req.params;
 
-    // Find user
-    const user = await User.findOne({ _id: id });
-    if (!user) { return res.status(404).json({ message: "User not found" }); }
-
-
-    // Fetch the BVPoints document for the given userId
-    const bvPoints = await BVPoints.findOne({ userId: id })
-      .select("weeklyEarnings userId") // Only selecting needed fields
-      .exec();
-
-
-    // Check if BVPoints data exists for the user
-    if (!bvPoints) { return res.status(404).json({ message: "No BV points available." }); }
-
-    // Check if the user has any weekly earnings
-    if (bvPoints.weeklyEarnings.length === 0) { return res.status(404).json({ message: "No weekly earnings data available" }); }
-
-    // Format and return the response
-    res.status(200).json({
-      userId: bvPoints.userId,
-      weeklyEarnings: bvPoints.weeklyEarnings.map((earning) => ({
-        week: earning.week.toISOString().split("T")[0], // Formatting date to "YYYY-MM-DD"
-        matchedBV: earning.matchedBV,
-        payoutAmount: earning.payoutAmount,
-      })),
-    });
-  } catch (err) {
-    console.error("Error fetching weekly payouts:", err);
-    res.status(500).json({ message: "Internal server error" });
-  }
-};
-
-
-
-
-
-// 2. Get Dashboard data
+// 1. Get Dashboard data
 const handleGetDashboardData = async (req, res) => {
   try {
     // Find user from received sponsorId
@@ -129,6 +89,78 @@ const handleGetDashboardData = async (req, res) => {
 
 
 
+// 2. Get weekly payout detaills
+const handleGetWeeklyPayoutsDetails = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    // Find user
+    const user = await User.findOne({ _id: id });
+    if (!user) { return res.status(404).json({ message: "User not found" }); }
+
+
+    // Fetch the BVPoints document for the given userId
+    const bvPoints = await BVPoints.findOne({ userId: id })
+      .select("weeklyEarnings userId") // Only selecting needed fields
+      .exec();
+
+
+    // Check if BVPoints data exists for the user
+    if (!bvPoints) { return res.status(404).json({ message: "No BV points available." }); }
+
+    // Check if the user has any weekly earnings
+    if (bvPoints.weeklyEarnings.length === 0) { return res.status(404).json({ message: "No weekly earnings data available" }); }
+
+    // Format and return the response
+    res.status(200).json({
+      userId: bvPoints.userId,
+      weeklyEarnings: bvPoints.weeklyEarnings.map((earning) => ({
+        week: earning.week.toISOString().split("T")[0], // Formatting date to "YYYY-MM-DD"
+        matchedBV: earning.matchedBV,
+        payoutAmount: earning.payoutAmount,
+      })),
+    });
+  } catch (err) {
+    console.error("Error fetching weekly payouts:", err);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+
+
+// 3. Get All Month payout detaills
+const handleGetMonthlyPayoutsDetails = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    // Find user
+    const user = await User.findOne({ _id: id });
+    if (!user) { return res.status(404).json({ message: "User not found" }); }
+
+
+    // Fetch the BVPoints document for the given userId
+    const bvPoints = await BVPoints.findOne({ userId: id }).select("monthlyEarnings userId"); // Only selecting needed fields
+
+    // Check if BVPoints data exists for the user
+    if (!bvPoints) { return res.status(404).json({ message: "No monthly earnings." }); }
+
+
+    // Check if the user has any weekly earnings
+    if (bvPoints.monthlyEarnings.length === 0) { return res.status(404).json({ message: "No monthly earnings data available." }); }
+
+    
+    // Format and return the response
+    res.status(200).json({
+      userId: bvPoints.userId,
+      monthlyEarnings: bvPoints.monthlyEarnings
+    });
+  } catch (err) {
+    console.error("Error fetching weekly payouts:", err);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+
 
 
 
@@ -137,6 +169,7 @@ const handleGetDashboardData = async (req, res) => {
 
 
 module.exports = {
-  handleGetWeeklyPayoutsDetails,
   handleGetDashboardData,
+  handleGetWeeklyPayoutsDetails,
+  handleGetMonthlyPayoutsDetails
 };
