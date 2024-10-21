@@ -64,10 +64,10 @@ const handleGetDashboardData = async (req, res) => {
       rightDirectBV: bvPoints.directBV.rightBV
     }
 
-    // const totalDirectTeam = {
-    //   leftDirectTeam: 1,
-    //   rightDirectTeam: 1,
-    // }
+    const totalDirectTeam = {
+      leftDirectTeam: await calculateDirectLeftTeam(user, user.mySponsorId),
+      rightDirectTeam: await calculateDirectRightTeam(user, user.mySponsorId)
+    }
 
     // Return the calculated earnings and tree user counts
     return res.status(200).json({
@@ -78,7 +78,7 @@ const handleGetDashboardData = async (req, res) => {
       rightTreeUsersCount,
       totalBVPointsEarned,
       totalDirectBV,
-      // totalDirectTeam,
+      totalDirectTeam,
     });
   
   } catch (error) {
@@ -86,6 +86,47 @@ const handleGetDashboardData = async (req, res) => {
     res.status(500).json({ message: "Internal server error" });
   }
 };
+
+
+
+async function calculateDirectLeftTeam(rootuser, rcvdSponsorId){
+
+  if(!rootuser || !rootuser.binaryPosition || !rootuser.binaryPosition.left) return 0;
+
+  let count = 0;
+  if(rootuser.binaryPosition.left){
+    const leftUser = await User.findById(rootuser.binaryPosition.left);
+    if(leftUser.sponsorId === rcvdSponsorId) { 
+      count += 1; 
+    }
+    count += await calculateDirectLeftTeam(leftUser, rcvdSponsorId) + await calculateDirectRightTeam(leftUser, rcvdSponsorId);
+  }
+
+  console.log('printing count', count);
+  return count;
+}
+
+
+
+async function calculateDirectRightTeam(rootuser, rcvdSponsorId){
+
+  if(!rootuser || !rootuser.binaryPosition || !rootuser.binaryPosition.right) return 0;
+
+  let count = 0;
+  if(rootuser.binaryPosition.right){
+    const rightUser = await User.findById(rootuser.binaryPosition.right);
+    if(rightUser.sponsorId === rcvdSponsorId) { 
+      count += 1; 
+    }
+    count += await calculateDirectLeftTeam(rightUser, rcvdSponsorId) + await calculateDirectRightTeam(rightUser, rcvdSponsorId);
+  }
+
+  console.log('Hiii');
+  console.log(count);
+  
+  
+  return count;
+}
 
 
 
