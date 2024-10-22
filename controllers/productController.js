@@ -2,17 +2,22 @@ const User = require('../models/user-models/users');
 const Product = require('../models/admin-models/products');
 const Wishlist = require('../models/user-models/wishlists');
 const { generateToken, verifyTokenMiddleware } = require('../middlewares/jwt');
+const client = require('../config/redis');
 
 
 
-// Add Product - done
+// 1. Add Product - done
 async function handleAddProduct(req, res) {
     try {
+        console.log('Inside function');
+        console.log(req.body);
+        
         const { name, category, price, bvPoints, description, stock } = req.body;
         if(!name || !category || !price || !bvPoints || !description || !stock) {
             return res.status(400).json({ message: 'All fields are required' });
         }
         
+        console.log("1");
         const newProduct = await Product.create({
             name,
             category,
@@ -24,6 +29,11 @@ async function handleAddProduct(req, res) {
             stock
         });
 
+        console.log('2');
+        
+        // Invalidate the cached products data
+        await client.del('product:allProducts');
+
         res.status(200).json({ message: 'Product added successfully', product: newProduct });
     } catch (error) {
         res.status(500).json({ error: 'Error adding product', message: error.message });
@@ -31,7 +41,7 @@ async function handleAddProduct(req, res) {
 }
 
 
-// Edit product - done
+// 2. Edit product - done
 async function handleEditProduct(req, res) {
     try {
         const updatedProduct = await Product.findById(req.params.id);
@@ -53,9 +63,14 @@ async function handleEditProduct(req, res) {
         
         // Save the updated product
         await updatedProduct.save();
+
+        // Invalidate the cached products data
+        await client.del('product:allProducts');
+        await client.del(`product:productId:${req.params.id}`);
         
+
+        // send the updated product
         res.status(200).json({ message: 'Product updated successfully', product: updatedProduct });
-        
     } catch (error) {
         console.log(error);
         console.log(error.message); 
@@ -64,7 +79,7 @@ async function handleEditProduct(req, res) {
 }
 
 
-// Delete product - done
+// 3. Delete product - done
 async function handleDeleteProduct(req, res) {
     try {        
         const deletedProduct = await Product.findByIdAndDelete({ _id: req.params.id });
@@ -73,8 +88,15 @@ async function handleDeleteProduct(req, res) {
             return res.status(404).json({ message: 'Product not found' });
         }
 
+        // Invalidate the cached products data
+        await client.del('product:allProducts');
+
         // Delete related wishlist items
         // await Wishlist.deleteMany({ productId: req.params.id });
+
+        // Invalidate the cached products data
+        await client.del('product:allProducts');
+        await client.del(`product:productId:${req.params.id}`);
 
         res.status(200).json({ message: 'Product deleted successfully' });
     } catch (error) {
@@ -85,11 +107,25 @@ async function handleDeleteProduct(req, res) {
 }
 
 
-// Get all products - done
+// 4. Get all products - done
 async function handleViewProducts(req, res) {
     try {
+        const value = await client.get('product:allProducts');
+        if (value) {
+            console.log("Value exists in Redis memory", value);
+            // console.log(JSON.parse(value));  
+            return res.json( {'products': JSON.parse(value)} );
+        }
+
         const products = await Product.find({});    
         if(!products) { return res.status(404).json({ message: 'Products not found' }) };
+
+        try{
+            await client.set('product:allProducts', JSON.stringify(products));
+            console.log('All Products data stored in Redis memory');
+        }catch(redisError) {
+            console.log("Error saving user to Redis:", redisError);
+        }
 
         res.status(200).json({ message: 'Products fetched successfully', products: products });
     } catch (error) {
@@ -98,11 +134,25 @@ async function handleViewProducts(req, res) {
 }
 
 
-// Get product by ID - done
+// 5. Get product by ID - done
 async function handleGetProductById(req, res) {
-    try { 
+    try {
+        const valueFromRedis = await client.get(`product:productId:${req.params.id}`);
+        if (valueFromRedis) {
+            console.log("Value exists in Redis memory", valueFromRedis); 
+            return res.status(200).json( {'message': "Product fetched successfully", 'product': JSON.parse(valueFromRedis)} );
+        }
+        
         const product = await Product.findById(req.params.id); 
         if (!product) { return res.status(404).send({ message: 'Product not found' }) }; 
+
+        // Store product in Redis memory
+        try{
+            await client.set(`product:productId:${req.params.id}`, JSON.stringify(product));
+            console.log(`Product ID ${req.params.id} data stored in Redis memory`);
+        }catch(redisError) {
+            console.log("Error saving user to Redis:", redisError);
+        } 
 
         // Send response with product data and image URL 
         res.status(200).json({ message: 'Product fetched successfully', product: product }); 
