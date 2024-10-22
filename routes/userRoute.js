@@ -8,9 +8,9 @@ const { handleGetDashboardData } = require('../controllers/payoutsController');
 
 
 
-router.get('/viewProducts', handleViewProducts);
-router.get('/getProductById/:id', handleGetProductById);
-router.post('/addToCart', handleAddProductsToCart);
+router.get('/viewProducts', handleViewProducts);            // RD
+router.get('/getProductById/:id', handleGetProductById);    // RD
+router.post('/addToCart', handleAddProductsToCart);         // RD
 
 // handleAddProductToCart
 router.post('/addProductToCart', verifyTokenMiddleware, handleAddProductToCart);

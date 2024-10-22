@@ -10,8 +10,8 @@ router.post('/register', handleRegisterUser);
 router.post('/registerLeft', handleRegisterUsingLeftLink);
 router.post('/registerRight', handleRegisterUsingRightLink);
 router.post('/login', handleLoginUser);
-router.get('/findUser/:id', handleFindUser);
-router.post('/verifySponsor', handleVerifySponsor);
+router.get('/findUser/:id', handleFindUser);            // R
+router.post('/verifySponsor', handleVerifySponsor);     // R
 
 
 
