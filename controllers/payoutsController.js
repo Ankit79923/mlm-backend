@@ -23,6 +23,8 @@ const handleGetDashboardData = async (req, res) => {
     let rightTreeUsersCount = await countRightChild(user);
     console.log(leftTreeUsersCount, rightTreeUsersCount);
     
+    console.log('Doneeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee');
+    
 
     // Fetch the BVPoints document for the given userId
     const bvPoints = await BVPoints.findOne({ userId: user._id });
@@ -54,6 +56,7 @@ const handleGetDashboardData = async (req, res) => {
       lifetimeEarning = bvPoints.monthlyEarnings.reduce((acc, earning) => acc + earning.payoutAmount, 0);
     }
 
+    console.log('Done');
     const totalBVPointsEarned = {
       leftBV: bvPoints.totalBV.leftBV,
       rightBV: bvPoints.totalBV.rightBV
@@ -64,10 +67,14 @@ const handleGetDashboardData = async (req, res) => {
       rightDirectBV: bvPoints.directBV.rightBV
     }
 
-    const totalDirectTeam = {
-      leftDirectTeam: await calculateDirectLeftTeam(user, user.mySponsorId),
-      rightDirectTeam: await calculateDirectRightTeam(user, user.mySponsorId)
-    }
+    console.log('DT started');
+    
+    // const totalDirectTeam = {
+    //   leftDirectTeam: await calculateDirectLeftTeam(user, user.mySponsorId),
+    //   rightDirectTeam: await calculateDirectRightTeam(user, user.mySponsorId)
+    // }
+
+    console.log('DT ended');
 
     // Return the calculated earnings and tree user counts
     return res.status(200).json({
@@ -78,7 +85,7 @@ const handleGetDashboardData = async (req, res) => {
       rightTreeUsersCount,
       totalBVPointsEarned,
       totalDirectBV,
-      totalDirectTeam,
+      // totalDirectTeam,
     });
   
   } catch (error) {
@@ -121,8 +128,8 @@ async function calculateDirectRightTeam(rootuser, rcvdSponsorId){
     count += await calculateDirectLeftTeam(rightUser, rcvdSponsorId) + await calculateDirectRightTeam(rightUser, rcvdSponsorId);
   }
 
-  console.log('Hiii');
-  console.log(count);
+  // console.log('Hiii');
+  // console.log(count);
   
   
   return count;
