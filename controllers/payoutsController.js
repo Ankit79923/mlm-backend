@@ -21,9 +21,6 @@ const handleGetDashboardData = async (req, res) => {
     // Consider user as root or head & then find total number of users in left and right tree
     let leftTreeUsersCount = await countLeftChild(user);
     let rightTreeUsersCount = await countRightChild(user);
-    console.log(leftTreeUsersCount, rightTreeUsersCount);
-    
-    console.log('Doneeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee');
     
 
     // Fetch the BVPoints document for the given userId
@@ -56,7 +53,6 @@ const handleGetDashboardData = async (req, res) => {
       lifetimeEarning = bvPoints.monthlyEarnings.reduce((acc, earning) => acc + earning.payoutAmount, 0);
     }
 
-    console.log('Done');
     const totalBVPointsEarned = {
       leftBV: bvPoints.totalBV.leftBV,
       rightBV: bvPoints.totalBV.rightBV
@@ -66,15 +62,11 @@ const handleGetDashboardData = async (req, res) => {
       leftDirectBV: bvPoints.directBV.leftBV,
       rightDirectBV: bvPoints.directBV.rightBV
     }
-
-    console.log('DT started');
     
-    // const totalDirectTeam = {
-    //   leftDirectTeam: await calculateDirectLeftTeam(user, user.mySponsorId),
-    //   rightDirectTeam: await calculateDirectRightTeam(user, user.mySponsorId)
-    // }
-
-    console.log('DT ended');
+    const totalDirectTeam = {
+      leftDirectTeam: await calculateDirectLeftTeam(user, user.mySponsorId),
+      rightDirectTeam: await calculateDirectRightTeam(user, user.mySponsorId)
+    }
 
     // Return the calculated earnings and tree user counts
     return res.status(200).json({
@@ -85,7 +77,7 @@ const handleGetDashboardData = async (req, res) => {
       rightTreeUsersCount,
       totalBVPointsEarned,
       totalDirectBV,
-      // totalDirectTeam,
+      totalDirectTeam,
     });
   
   } catch (error) {
@@ -97,7 +89,6 @@ const handleGetDashboardData = async (req, res) => {
 
 
 async function calculateDirectLeftTeam(rootuser, rcvdSponsorId){
-
   if(!rootuser || !rootuser.binaryPosition || !rootuser.binaryPosition.left) return 0;
 
   let count = 0;
@@ -109,16 +100,14 @@ async function calculateDirectLeftTeam(rootuser, rcvdSponsorId){
     count += await calculateDirectLeftTeam(leftUser, rcvdSponsorId) + await calculateDirectRightTeam(leftUser, rcvdSponsorId);
   }
 
-  console.log('printing count', count);
   return count;
 }
 
 
 
 async function calculateDirectRightTeam(rootuser, rcvdSponsorId){
-
   if(!rootuser || !rootuser.binaryPosition || !rootuser.binaryPosition.right) return 0;
-
+  
   let count = 0;
   if(rootuser.binaryPosition.right){
     const rightUser = await User.findById(rootuser.binaryPosition.right);
@@ -127,10 +116,6 @@ async function calculateDirectRightTeam(rootuser, rcvdSponsorId){
     }
     count += await calculateDirectLeftTeam(rightUser, rcvdSponsorId) + await calculateDirectRightTeam(rightUser, rcvdSponsorId);
   }
-
-  // console.log('Hiii');
-  // console.log(count);
-  
   
   return count;
 }
