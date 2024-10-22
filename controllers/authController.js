@@ -358,7 +358,7 @@ async function handleLoginUser(req, res) {
         if (isPasswordMatch) {
             const payload = { email: user.email, id: user._id, role: 'user' };
             const token = generateToken(payload);
-            return res.status(200).json({ token, userId: user._id, name: user.name});
+            return res.status(200).json({ token, userId: user._id, name: user.name, mySponsorId: user.mySponsorId});
         } else {
             return res.status(404).json({ message: 'Incorrect sponsorId OR password.' });
         }
