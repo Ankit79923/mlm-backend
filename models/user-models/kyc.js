@@ -64,6 +64,10 @@ const kycSchema = mongoose.Schema({
             type: Date,
             default: Date.now
         }
+    },
+    kycApproved: {
+        type: Boolean,
+        default: false
     }
 });
 
