@@ -127,6 +127,52 @@ const handleAssignProductsToFranchise = async (req, res) => {
 
 
 // 4. Handle Get Franchies Inventory
+// const handleGetFranchiesInventory = async (req, res) => {
+//     try {
+//         const { franchiseId } = req.params;
+//         if (!franchiseId) {
+//             return res.status(400).json({ message: 'Please provide Franchise ID' });
+//         }
+
+//         // Find the franchise by franchiseId
+//         const franchise = await Franchise.findOne({ franchiseId });
+//         if (!franchise) {
+//             return res.status(404).json({ message: 'Incorrect FranchiseID' });
+//         }
+
+//         // Find the inventory for the franchise
+//         let inventory = await Inventory.findOne({ franchiseId: franchise._id });
+//         if (!inventory) {
+//             return res.status(200).json({ message: 'Inventory not found' });
+//         }
+
+//         // Map through the inventory products and fetch additional details from Products model
+//         const inventoryWithProductDetails = await Promise.all(
+//             inventory.products.map(async (item) => {
+//                 const product = await Product.findById(item.productId);
+//                 if (product) {
+//                     return {
+//                         productId: item.productId,
+//                         productName: product.name,            // Add product name from the Product model
+//                         productImage: product.imageURL,        // Add product imageURL from the Product model
+//                         quantity: item.quantity,
+//                         price: item.price,
+//                         bvPoints: item.bvPoints,
+//                         isAvailable: item.isAvailable,
+//                     };
+//                 }
+//                 return item; // If product not found, return the original item
+//             })
+//         );
+
+//         // Return the inventory with product details
+//         return res.status(200).json(inventoryWithProductDetails);
+//     } catch (e) {
+//         console.log(e.message);
+//         return res.status(500).json({ message: 'Error finding Inventory', error: e.message });
+//     }
+// };
+
 const handleGetFranchiesInventory = async (req, res) => {
     try {
         const { franchiseId } = req.params;
@@ -140,38 +186,24 @@ const handleGetFranchiesInventory = async (req, res) => {
             return res.status(404).json({ message: 'Incorrect FranchiseID' });
         }
 
-        // Find the inventory for the franchise
-        let inventory = await Inventory.findOne({ franchiseId: franchise._id });
+        // Find the inventory for the franchise and populate product details (name, image, etc.)
+        let inventory = await Inventory.findOne({ franchiseId: franchise._id }).populate({
+            path: 'products.productId', // Reference to the product field in the inventory schema
+            select: 'productName imageURL', // Select only the required fields (name and image)
+        });
+
         if (!inventory) {
-            return res.status(200).json({ message: 'Inventory not found' });
+            return res.status(404).json({ message: 'Inventory not found for the given franchise' });
         }
 
-        // Map through the inventory products and fetch additional details from Products model
-        const inventoryWithProductDetails = await Promise.all(
-            inventory.products.map(async (item) => {
-                const product = await Product.findById(item.productId);
-                if (product) {
-                    return {
-                        productId: item.productId,
-                        productName: product.name,            // Add product name from the Product model
-                        productImage: product.imageURL,        // Add product imageURL from the Product model
-                        quantity: item.quantity,
-                        price: item.price,
-                        bvPoints: item.bvPoints,
-                        isAvailable: item.isAvailable,
-                    };
-                }
-                return item; // If product not found, return the original item
-            })
-        );
-
-        // Return the inventory with product details
-        return res.status(200).json(inventoryWithProductDetails);
+        // Return the populated inventory with product details
+        return res.status(200).json(inventory.products);
     } catch (e) {
         console.log(e.message);
         return res.status(500).json({ message: 'Error finding Inventory', error: e.message });
     }
 };
+
 
 
 
