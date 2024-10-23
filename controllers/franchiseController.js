@@ -172,7 +172,6 @@ const handleGetFranchiesInventory = async (req, res) => {
         return res.status(500).json({ message: 'Error finding Inventory', error: e.message });
     }
 };
-
 // const handleGetFranchiesInventory = async (req, res) => {
 //     try {
 //         const { franchiseId } = req.params;
@@ -211,6 +210,10 @@ const handleGetFranchiesInventory = async (req, res) => {
 
 
 // 5. Remove Product from Franchise Inventory - only by admin
+
+
+
+
 const handleRemoveProductFromFranchiseInventory = async (req, res) => {
     try {
         const { franchiseId, productId } = req.params;
