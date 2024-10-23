@@ -25,7 +25,7 @@ router.post('/getDirectReferrals', handleGetAllReferrals);
 router.get('/searchUserInGenealogyTree/:sponsorId', handleSearchSpecificUser);
 
 router.post('/getDashboardData', handleGetDashboardData);
-router.get('/submitKycDetails', upload.fields([
+router.post('/submitKycDetails', upload.fields([
     { name: 'panCardFront', maxCount: 1 },
     { name: 'aadharCardFront', maxCount: 1 },
     { name: 'aadharCardBack', maxCount: 1 },
