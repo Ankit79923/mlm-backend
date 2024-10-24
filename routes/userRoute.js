@@ -3,7 +3,7 @@ const router = express.Router();
 const upload = require('../middlewares/multer');
 
 const { generateToken, verifyTokenMiddleware, isAdminMiddleware } = require('../middlewares/jwt');
-const { handleViewProducts, handleGetProductById, handleAddProductsToCart, handleAddProductToWishlist, handleAddProductToCart } = require('../controllers/productController');
+const { handleViewProducts, handleGetProductById, handleAddProductsToCart, handleAddProductToWishlist, handleAddProductToCart, handleGetMyOrders } = require('../controllers/productController');
 const { handleGetSponsorChildrens, handleExtremeLeft, handleExtremeRight, handleGetAllReferrals, handleSearchSpecificUser } = require('../controllers/authController');
 const { handleGetDashboardData } = require('../controllers/payoutsController');
 const { handleSubmitKycDetails } = require('../controllers/kycController');
@@ -26,6 +26,7 @@ router.post('/getDirectReferrals', handleGetAllReferrals);
 router.get('/searchUserInGenealogyTree/:sponsorId', handleSearchSpecificUser);
 
 router.get('/getAllFranchies', handleGetAllFranchises);
+router.post('/myOrders', handleGetMyOrders);
 
 router.post('/getDashboardData', handleGetDashboardData);
 router.post('/submitKycDetails', upload.fields([
@@ -38,12 +39,6 @@ router.post('/submitKycDetails', upload.fields([
 );
 
 
-// app.post('/api/kyc', upload.fields([
-//     { name: 'panCardFront', maxCount: 1 },
-//     { name: 'aadharCardFront', maxCount: 1 },
-//     { name: 'aadharCardBack', maxCount: 1 },
-//     { name: 'bankCard', maxCount: 1 }
-//   ]), );
 
 
 module.exports = router;

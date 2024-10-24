@@ -8,6 +8,10 @@ const bvPointsSchema = new mongoose.Schema({
     ref: 'User',
     required: true
   },
+  personalBV : {
+    type: Number,
+    default: 0
+  },
   totalBV : {
     leftBV : {type: Number, default: 0},
     rightBV : {type: Number, default: 0}

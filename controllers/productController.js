@@ -278,6 +278,28 @@ async function handleAddProductToCart(req, res) {
 
 
 
+// see My Orders
+async function handleGetMyOrders(req, res) {
+    try {
+        // find user
+        const user = await User.findOne( {mySponsorId: req.body.sponsorId} );
+        if (!user) { return res.status(400).json({ message: 'Incorrect sponsorId.' }); }
+
+        // find orders
+        // const orders = await Order.find({ userId: userId });
+        // if (!orders) { return res.status(404).json({ message: 'No orders found for this user.' }); }
+
+        // console.log(user);
+        
+
+        res.status(200).json({ message: 'Orders fetched successfully', myOrders: user.productsPurchased });
+    } catch (error) {
+        console.log(error.message);
+        res.status(500).json({ error: 'Error fetching orders', message: error.message });
+    }
+}
+
+
 module.exports = {
     handleAddProduct,
     handleEditProduct,
@@ -286,5 +308,6 @@ module.exports = {
     handleGetProductById,
     handleAddProductsToCart,
     handleAddProductToWishlist,
-    handleAddProductToCart
+    handleAddProductToCart,
+    handleGetMyOrders
 }
