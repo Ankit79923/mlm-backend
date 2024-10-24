@@ -7,6 +7,7 @@ const { handleViewProducts, handleGetProductById, handleAddProductsToCart, handl
 const { handleGetSponsorChildrens, handleExtremeLeft, handleExtremeRight, handleGetAllReferrals, handleSearchSpecificUser } = require('../controllers/authController');
 const { handleGetDashboardData } = require('../controllers/payoutsController');
 const { handleSubmitKycDetails } = require('../controllers/kycController');
+const { handleGetAllFranchises } = require('../controllers/franchiseController');
 
 
 
@@ -23,6 +24,8 @@ router.post('/extremeLeft', handleExtremeLeft);
 router.post('/extremeRight', handleExtremeRight);
 router.post('/getDirectReferrals', handleGetAllReferrals);
 router.get('/searchUserInGenealogyTree/:sponsorId', handleSearchSpecificUser);
+
+router.get('/getAllFranchies', handleGetAllFranchises);
 
 router.post('/getDashboardData', handleGetDashboardData);
 router.post('/submitKycDetails', upload.fields([
