@@ -335,6 +335,7 @@ const handleCalculateTotalBill = async (req, res) => {
         
 
         // Calculate total bill
+        const orderNumber = 5;
         let totalPrice = 0;
         let totalBvPoints = 0;
         for (let product of products) {
@@ -351,7 +352,18 @@ const handleCalculateTotalBill = async (req, res) => {
             totalPrice += productFound.price * quantity;
 
             // Add products purchased to user schema field 'productsPurchased'
-            user.productsPurchased.push({ productId, quantity, price: productFound.price });
+            const totalAmountPaid =  productFound.price * quantity
+            const price = productFound.price;
+            // console.log(productId, quantity, price, totalAmountPaid, bvPointsEarned, orderNumber);
+            
+            user.productsPurchased.push({ 
+                productId, 
+                quantity, 
+                price: price, 
+                totalAmountPaid: totalAmountPaid, 
+                BVPointsEarned: bvPointsEarned,
+                orderNumber: orderNumber
+            });
             if(user.isActive === false) {
                 user.isActive = true;
             }
@@ -361,6 +373,7 @@ const handleCalculateTotalBill = async (req, res) => {
         }
 
         await addBvPointsToAncestors(user, totalBvPoints);
+        // await addPersonalBVpoints(user, totalBvPoints);
 
         return res.status(200).json({ message: 'Total bill calculated successfully', totalPrice });
     } catch (error) {
@@ -368,6 +381,27 @@ const handleCalculateTotalBill = async (req, res) => {
         return res.status(500).json({ message: 'Internal server error' });
     }
 }
+
+
+// async function addPersonalBVpoints(user, totalBvPoints) {
+//     try {
+//         // Find BV Points document for user
+//         let userBVPoints = await BVPoints.findOne({ userId: user._id });
+//         if (!userBVPoints) {
+//             // If BVPoints document doesn't exist, create a new one
+//             // Create a new BVPoint Doc only if user is Active.
+//             // ancestorBVPoints = new BVPoints({ userId: ancestor._id });
+//             if(ancestor.isActive === true) {
+//                 ancestorBVPoints = new BVPoints({ userId: ancestor._id });
+//             } else if(ancestor.isActive === false) {
+//                 currentUser = ancestor;
+//                 continue;
+//             }
+//         }
+//     } catch (error) {
+//         console.error('Error adding personal BV points:', error);
+//     }
+// }
 
 
 async function addBvPointsToAncestors(user, totalBvPoints) {

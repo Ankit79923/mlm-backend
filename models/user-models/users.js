@@ -106,6 +106,18 @@ const userSchema = new mongoose.Schema({
         type: Number,
         required: true,
       },
+      totalAmountPaid: {
+        type: Number,
+        required: true,
+      },
+      BVPointsEarned: {
+        type: Number,
+        required: true
+      },
+      orderNumber: {
+        type: Number,
+        required: true,
+      },
       date: {
         type: Date,
         default: Date.now,
