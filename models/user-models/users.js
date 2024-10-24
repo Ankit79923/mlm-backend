@@ -112,6 +112,10 @@ const userSchema = new mongoose.Schema({
       }
     }
   ],
+  isActive: {
+    type: Boolean,
+    default: false,
+  },
   createdAt: {
     type: Date,
     default: Date.now,

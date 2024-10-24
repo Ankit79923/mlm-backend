@@ -11,6 +11,12 @@ const handleSubmitKycDetails = async (req, res) => {
       if(!mySponsorId || !name || !mobileNumber || !bankName || !branchName || !accountNumber || !ifscCode || !panCard || !aadharCard) {
         return res.status(400).json({ message: 'All fields are required. Please fill all the fields.' });
       }
+
+      // Check if the KYC user already exists in the database
+      const existingUser = await KYC.findOne({ 'userDetails.mySponsorId': mySponsorId });
+      if (existingUser) {
+        return res.status(400).json({ message: 'You have already submitted KYC details.' });
+      }
   
       // Create a new KYC document
       const kyc = new KYC({

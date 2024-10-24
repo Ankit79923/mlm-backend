@@ -4,6 +4,7 @@ const Inventory = require('../models/franchise-models/inventory');
 const BVPoints = require('../models/user-models/bvPoints');
 const User = require('../models/user-models/users');
 const { generateToken } = require('../middlewares/jwt');
+const client = require('../config/redis');
 
 
 
@@ -110,10 +111,17 @@ const handleAssignProductsToFranchise = async (req, res) => {
             assignedProducts.push({ productId, quantity, price, bvPoints });
             productFound.stock -= quantity;
             await productFound.save();
+
+            // Invalidate the cached products data
+            await client.del(`product:productId:${productId}`);
+            // await client.del('product:allProducts');
         }
 
         // Save the updated inventory
         await inventory.save();
+
+        // Invalidate the cached products data
+        await client.del('product:allProducts');
 
         // Respond with success
         return res.status(200).json( { message: 'Products assigned successfully to franchise', franchiseId, assignedProducts, totalPrice});
@@ -344,6 +352,9 @@ const handleCalculateTotalBill = async (req, res) => {
 
             // Add products purchased to user schema field 'productsPurchased'
             user.productsPurchased.push({ productId, quantity, price: productFound.price });
+            if(user.isActive === false) {
+                user.isActive = true;
+            }
             await user.save();
 
             // console.log(`User with ID ${user._id} has purchased product with ID ${productId} and quantity ${quantity}.`);
@@ -372,7 +383,14 @@ async function addBvPointsToAncestors(user, totalBvPoints) {
             let ancestorBVPoints = await BVPoints.findOne({ userId: ancestor._id });
             if (!ancestorBVPoints) {
                 // If BVPoints document doesn't exist, create a new one
-                ancestorBVPoints = new BVPoints({ userId: ancestor._id });
+                // Create a new BVPoint Doc only if user is Active.
+                // ancestorBVPoints = new BVPoints({ userId: ancestor._id });
+                if(ancestor.isActive === true) {
+                    ancestorBVPoints = new BVPoints({ userId: ancestor._id });
+                } else if(ancestor.isActive === false) {
+                    currentUser = ancestor;
+                    continue;
+                }
             }
 
 
@@ -380,11 +398,11 @@ async function addBvPointsToAncestors(user, totalBvPoints) {
             const isInLeftTree = await checkIfInLeftTree(ancestor, currentUser);
             if (isInLeftTree)  { 
                 ancestorBVPoints.totalBV.leftBV += totalBvPoints; 
-                ancestorBVPoints.currentWeekBV.leftBV += totalBvPoints;
-                ancestorBVPoints.currentMonthBV.leftBV += totalBvPoints;
+                ancestorBVPoints.currentWeekBV.leftBV += totalBvPoints; 
+                ancestorBVPoints.currentMonthBV.leftBV += totalBvPoints; 
                 await ancestorBVPoints.save();
             } 
-            else  { 
+            else { 
                 ancestorBVPoints.totalBV.rightBV += totalBvPoints; 
                 ancestorBVPoints.currentWeekBV.rightBV += totalBvPoints;
                 ancestorBVPoints.currentMonthBV.rightBV += totalBvPoints;

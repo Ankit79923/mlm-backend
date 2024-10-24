@@ -32,7 +32,19 @@ const handleGetDashboardData = async (req, res) => {
         monthlyEarning,
         lifetimeEarning,
         leftTreeUsersCount,
-        rightTreeUsersCount
+        rightTreeUsersCount,
+        totalBVPointsEarned: {
+          leftBV: 0,
+          rightBV: 0
+        },
+        totalDirectBV: {
+          leftDirectBV: 0,
+          rightDirectBV: 0
+        },
+        totalDirectTeam: {
+          leftDirectTeam: 0,
+          rightDirectTeam: 0
+        }
       });
     }
 
