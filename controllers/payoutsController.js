@@ -37,6 +37,7 @@ const handleGetDashboardData = async (req, res) => {
           leftBV: 0,
           rightBV: 0
         },
+        myTotalBV: 0,
         totalDirectBV: {
           leftDirectBV: 0,
           rightDirectBV: 0
@@ -70,6 +71,8 @@ const handleGetDashboardData = async (req, res) => {
       rightBV: bvPoints.totalBV.rightBV
     }
 
+    const myTotalBV = bvPoints.totalBV.leftBV + bvPoints.totalBV.rightBV;
+
     const totalDirectBV = {
       leftDirectBV: bvPoints.directBV.leftBV,
       rightDirectBV: bvPoints.directBV.rightBV
@@ -88,6 +91,7 @@ const handleGetDashboardData = async (req, res) => {
       leftTreeUsersCount,
       rightTreeUsersCount,
       totalBVPointsEarned,
+      myTotalBV,
       totalDirectBV,
       totalDirectTeam,
     });
