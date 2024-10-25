@@ -304,7 +304,7 @@ async function handleRegisterUsingRightLink(req, res) {
         
         
         
-
+        console.log('Reached 1');
         // Generate a unique mySponsorId
         let generatedSponsorId = await generateUniqueSponsorID();
         const leftRefferalLink = `${process.env.DOMAIN_URL}/signupleft/${generatedSponsorId}`;
@@ -333,7 +333,11 @@ async function handleRegisterUsingRightLink(req, res) {
         });
 
         // Attach to sponsor's binary tree
+        console.log('Reached 2');
+        
         await placeInRightSideOfTree(sponsor, newUser);
+        console.log('Reached 3');
+        
         return res.status(201).json({ message: 'User registered successfully', user: newUser });
     } catch (error) {
         res.status(500).json({ message: 'Server error', error: error.message });

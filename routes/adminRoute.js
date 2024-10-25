@@ -5,7 +5,7 @@ const { isAdminMiddleware } = require('../middlewares/jwt');
 const { handleAdminLogin, handleCreateAdmin} = require('../controllers/adminController');
 const { handleAddProduct, handleEditProduct, handleDeleteProduct, handleViewProducts } = require('../controllers/productController');
 const { handleCreateFranchise, handleGetAllFranchises, handleAssignProductsToFranchise, handleGetFranchiesInventory, handleRemoveProductFromFranchiseInventory } = require('../controllers/franchiseController');   
-const { handleGetAllNonVerifiedKycUsers, handleVerifyKYCDetails } = require('../controllers/kycController');
+const { handleGetAllNonVerifiedKycUsers, handleVerifyKYCDetails, handleRejectKYCDetails } = require('../controllers/kycController');
 
 
 // Authentication Routes
@@ -30,5 +30,6 @@ router.delete('/franchise/:franchiseId/remove-product/:productId', handleRemoveP
 
 router.get('/kycVerification/pending', handleGetAllNonVerifiedKycUsers);
 router.post('/approveKycVerification', handleVerifyKYCDetails);
+router.post('/rejectKycVerification', handleRejectKYCDetails);
 
 module.exports = router;

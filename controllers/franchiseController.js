@@ -372,8 +372,8 @@ const handleCalculateTotalBill = async (req, res) => {
             // console.log(`User with ID ${user._id} has purchased product with ID ${productId} and quantity ${quantity}.`);
         }
 
+        await addPersonalBVpoints(user, totalBvPoints);
         await addBvPointsToAncestors(user, totalBvPoints);
-        // await addPersonalBVpoints(user, totalBvPoints);
 
         return res.status(200).json({ message: 'Total bill calculated successfully', totalPrice });
     } catch (error) {
@@ -383,25 +383,23 @@ const handleCalculateTotalBill = async (req, res) => {
 }
 
 
-// async function addPersonalBVpoints(user, totalBvPoints) {
-//     try {
-//         // Find BV Points document for user
-//         let userBVPoints = await BVPoints.findOne({ userId: user._id });
-//         if (!userBVPoints) {
-//             // If BVPoints document doesn't exist, create a new one
-//             // Create a new BVPoint Doc only if user is Active.
-//             // ancestorBVPoints = new BVPoints({ userId: ancestor._id });
-//             if(ancestor.isActive === true) {
-//                 ancestorBVPoints = new BVPoints({ userId: ancestor._id });
-//             } else if(ancestor.isActive === false) {
-//                 currentUser = ancestor;
-//                 continue;
-//             }
-//         }
-//     } catch (error) {
-//         console.error('Error adding personal BV points:', error);
-//     }
-// }
+async function addPersonalBVpoints(user, totalBvPoints) {
+    try {
+        // Find BV Points document for user
+        let userBVPoints = await BVPoints.findOne({ userId: user._id });
+        if (!userBVPoints) {
+            // user BVPoints doesn't exists => user- isActive: false  => create userBVPoints
+            userBVPoints = await BVPoints.create({ userId: user._id });
+            user.isActive = true;
+            await user.save();
+        }
+        
+        userBVPoints.personalBV += totalBvPoints;
+        await userBVPoints.save();
+    } catch (error) {
+        console.error('Error adding personal BV points:', error);
+    }
+}
 
 
 async function addBvPointsToAncestors(user, totalBvPoints) {

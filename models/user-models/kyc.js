@@ -66,8 +66,9 @@ const kycSchema = mongoose.Schema({
         }
     },
     kycApproved: {
-        type: Boolean,
-        default: false
+        type: String,
+        enum: ['pending', 'verified', 'rejected'],
+        default: 'pending'
     }
 });
 
