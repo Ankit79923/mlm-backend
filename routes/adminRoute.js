@@ -3,7 +3,7 @@ const router = express.Router();
 const upload = require('../middlewares/multer'); 
 const { isAdminMiddleware } = require('../middlewares/jwt');
 const { handleAdminLogin, handleCreateAdmin} = require('../controllers/adminController');
-const { handleAddProduct, handleEditProduct, handleDeleteProduct, handleViewProducts } = require('../controllers/productController');
+const { handleAddProduct, handleEditProduct, handleDeleteProduct, handleViewProducts, handleClearAllRedisCache } = require('../controllers/productController');
 const { handleCreateFranchise, handleGetAllFranchises, handleAssignProductsToFranchise, handleGetFranchiesInventory, handleRemoveProductFromFranchiseInventory } = require('../controllers/franchiseController');   
 const { handleGetAllNonVerifiedKycUsers, handleVerifyKYCDetails, handleRejectKYCDetails, handleGetAllVerifiedKycUsers } = require('../controllers/kycController');
 
@@ -11,6 +11,7 @@ const { handleGetAllNonVerifiedKycUsers, handleVerifyKYCDetails, handleRejectKYC
 // Authentication Routes
 router.post('/create', handleCreateAdmin);  
 router.post('/login', handleAdminLogin);  
+router.delete('/cache/clear', handleClearAllRedisCache);
 
 
 // Product Routes

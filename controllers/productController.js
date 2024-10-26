@@ -163,7 +163,17 @@ async function handleGetProductById(req, res) {
 }
 
 
-
+async function handleClearAllRedisCache(req, res) {
+    try {
+      // Flush all keys in Redis
+      await client.flushAll();
+      
+      res.status(200).json({ message: 'All Redis cache cleared successfully' });
+    } catch (error) {
+      console.log('Error clearing Redis cache:', error.message);
+      res.status(500).json({ error: 'Failed to clear Redis cache', message: error.message });
+    }
+}
 
 
 
@@ -307,6 +317,7 @@ module.exports = {
     handleDeleteProduct,
     handleViewProducts,
     handleGetProductById,
+    handleClearAllRedisCache,
     handleAddProductsToCart,
     handleAddProductToWishlist,
     handleAddProductToCart,
