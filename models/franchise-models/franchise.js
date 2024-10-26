@@ -37,20 +37,20 @@ const franchiseSchema = mongoose.Schema({
 
 
 
-franchiseSchema.pre('save', async function(next) {
-  const user = this;
-  if(!user.isModified('password')) next();
+// franchiseSchema.pre('save', async function(next) {
+//   const user = this;
+//   if(!user.isModified('password')) next();
 
-  try{
-      const salt = await bcrypt.genSalt(10);
-      const hashedPassword = await bcrypt.hash(user.password, salt);
-      user.password = hashedPassword;
-      next();
-  }catch(err){
-      console.log('Error: '+ err);
-      next(err);
-  }
-});
+//   try{
+//       const salt = await bcrypt.genSalt(10);
+//       const hashedPassword = await bcrypt.hash(user.password, salt);
+//       user.password = hashedPassword;
+//       next();
+//   }catch(err){
+//       console.log('Error: '+ err);
+//       next(err);
+//   }
+// });
 
 
 

@@ -280,7 +280,7 @@ const handleLoginFranchise = async (req, res) => {
         if (!franchise) { return res.status(401).json({ message: 'Invalid franchiseId.' }); }
 
         // Check the password
-        const isPasswordMatch = await franchise.comparePassword(password);
+        const isPasswordMatch = franchise.password === password? true : false;
         if (isPasswordMatch) {
             const payload = { email: franchise.email, id: franchise._id, role: 'franchise' };
             const token = generateToken(payload);
