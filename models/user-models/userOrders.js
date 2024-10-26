@@ -1,14 +1,10 @@
 const mongoose = require('mongoose');
 
-const franchiseOrderSchema = new mongoose.Schema({
-  franchiseDetails: {
-    franchise: {
+const userOrderSchema = new mongoose.Schema({
+  userDetails: {
+    user: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'Franchise',
-        required: true,
-    },
-    franchiseId: {
-        type: String,
+        ref: 'User',
         required: true,
     }
   },
@@ -23,6 +19,10 @@ const franchiseOrderSchema = new mongoose.Schema({
         default: Date.now,
     },
     totalAmount: {
+        type: Number,
+        required: true,
+    },
+    totalBVPoints: {
         type: Number,
         required: true,
     }
@@ -50,7 +50,7 @@ const franchiseOrderSchema = new mongoose.Schema({
       totalAmount: {
         type: Number,
         required: true,
-      },
+      }
     },
   ]
 });

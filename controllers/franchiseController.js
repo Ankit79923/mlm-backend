@@ -161,13 +161,14 @@ const saveOrderDetails = async (franchiseObjectId, franchiseId, products) => {
             productId,
             name: productFound.name,
             quantity,
-            price: price * quantity,
+            price,
+            totalAmount: price * quantity,
           };
         })
     );
 
     // Generate a unique order number
-    const orderNumber = Math.floor(100000 + Math.random() * 900000);
+    const orderNumber = await generateUniqueFranchiseOrderNumber();
 
     // Create and save the order document
     const order = new FranchiseOrder({
@@ -193,8 +194,24 @@ const saveOrderDetails = async (franchiseObjectId, franchiseId, products) => {
 };
 
 
-
-
+// helper => generate Unique Franchise Order Number
+const generateUniqueFranchiseOrderNumber = async () => {
+    let orderNumber;
+    let isUnique = false;
+  
+    while (!isUnique) {
+      // Generate a random 7-digit number
+      orderNumber = Math.floor(1000000 + Math.random() * 9000000);
+  
+      // Check if this order number already exists in the database
+      const existingOrder = await FranchiseOrder.findOne({ "orderDetails.orderNumber": orderNumber });
+      if (!existingOrder) {
+        isUnique = true;
+      }
+    }
+  
+    return orderNumber;
+  };
 
 
 
