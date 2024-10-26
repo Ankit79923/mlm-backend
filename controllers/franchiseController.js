@@ -5,7 +5,8 @@ const BVPoints = require('../models/user-models/bvPoints');
 const User = require('../models/user-models/users');
 const { generateToken } = require('../middlewares/jwt');
 const client = require('../config/redis');
-const FranchiseOrder = require('../models/franchise-models/franchiseOrders'); // Adjust path as needed
+const FranchiseOrder = require('../models/franchise-models/franchiseOrders'); 
+const UserOrder = require('../models/user-models/userOrders');
 
 
 
@@ -455,6 +456,7 @@ const handleCalculateTotalBill = async (req, res) => {
 
         await addPersonalBVpoints(user, totalBvPoints);
         await addBvPointsToAncestors(user, totalBvPoints);
+        // await createUserOrder(user, totalBvPoints);
 
         return res.status(200).json({ message: 'Total bill calculated successfully', totalPrice });
     } catch (error) {
@@ -559,6 +561,78 @@ async function checkIfInLeftTree(ancestor, user) {
     return false;
 }
 
+
+// // Function to save order details for franchise
+// const saveUserOrderDetails = async () => {
+//     try {
+//       // Calculate total amount
+//       let totalAmount = 0;
+  
+//       const productDetails = await Promise.all(
+//           products.map(async (product) => {
+//             const { productId, quantity, price, bvPoints } = product;
+//             totalAmount += price * quantity;
+    
+//             const productFound = await Product.findOne({ _id: productId });
+//             if (!productFound) {
+//               throw new Error(`Product with ID ${productId} not found`);
+//             }
+    
+//             return {
+//               productId,
+//               name: productFound.name,
+//               quantity,
+//               price,
+//               totalAmount: price * quantity,
+//             };
+//           })
+//       );
+  
+//       // Generate a unique order number
+//       const orderNumber = await generateUniqueFranchiseOrderNumber();
+  
+//       // Create and save the order document
+//       const order = new FranchiseOrder({
+//         franchiseDetails: {
+//           franchise: franchiseObjectId,
+//           franchiseId: franchiseId
+//         },
+//         orderDetails: {
+//           orderNumber,
+//           totalAmount
+//         },
+//         products: productDetails,
+//       });
+  
+//       await order.save();
+//       console.log('Order saved successfully:', order);
+  
+//       // return order;
+//     } catch (error) {
+//       console.error('Error saving order details:', error.message);
+//       throw new Error('Failed to save order details');
+//     }
+//   };
+  
+  
+// // helper => generate Unique Franchise Order Number
+// const generateUniqueUserOrderNumber = async () => {
+//       let orderNumber;
+//       let isUnique = false;
+    
+//       while (!isUnique) {
+//         // Generate a random 7-digit number
+//         orderNumber = Math.floor(1000000 + Math.random() * 9000000);
+    
+//         // Check if this order number already exists in the database
+//         const existingOrder = await UserOrder.findOne({ "orderDetails.orderNumber": orderNumber });
+//         if (!existingOrder) {
+//           isUnique = true;
+//         }
+//       }
+    
+//       return orderNumber;
+// };
 
 
 
