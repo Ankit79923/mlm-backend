@@ -4,7 +4,7 @@ const upload = require('../middlewares/multer');
 const { isAdminMiddleware } = require('../middlewares/jwt');
 const { handleAdminLogin, handleCreateAdmin} = require('../controllers/adminController');
 const { handleAddProduct, handleEditProduct, handleDeleteProduct, handleViewProducts, handleClearAllRedisCache } = require('../controllers/productController');
-const { handleCreateFranchise, handleGetAllFranchises, handleAssignProductsToFranchise, handleGetFranchiesInventory, handleRemoveProductFromFranchiseInventory } = require('../controllers/franchiseController');   
+const { handleCreateFranchise, handleGetAllFranchises, handleAssignProductsToFranchise, handleGetFranchiesInventory, handleRemoveProductFromFranchiseInventory, handleGetFranchiseOrders } = require('../controllers/franchiseController');   
 const { handleGetAllNonVerifiedKycUsers, handleVerifyKYCDetails, handleRejectKYCDetails, handleGetAllVerifiedKycUsers } = require('../controllers/kycController');
 
 
@@ -19,6 +19,7 @@ router.post('/addProduct', isAdminMiddleware, upload.single('picture'), handleAd
 router.post('/editProduct/:id', isAdminMiddleware, upload.single('picture'), handleEditProduct);         // DONE
 router.delete('/deleteProduct/:id', isAdminMiddleware, handleDeleteProduct);
 router.get('/viewProducts', isAdminMiddleware, handleViewProducts);
+router.post('/getFranchiseOrders', handleGetFranchiseOrders);
 
 
 // Franchise routes

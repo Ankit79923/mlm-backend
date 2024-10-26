@@ -5,6 +5,7 @@ const BVPoints = require('../models/user-models/bvPoints');
 const User = require('../models/user-models/users');
 const { generateToken } = require('../middlewares/jwt');
 const client = require('../config/redis');
+const FranchiseOrder = require('../models/admin-models/franchiseOrders'); // Adjust path as needed
 
 
 
@@ -123,6 +124,10 @@ const handleAssignProductsToFranchise = async (req, res) => {
         // Invalidate the cached products data
         await client.del('product:allProducts');
 
+        // ----------------------------------------------------------------------------
+        // Call saveOrderDetails after assigning products
+        await saveOrderDetails(franchise._id, franchiseId, products);
+
         // Respond with success
         return res.status(200).json( { message: 'Products assigned successfully to franchise', franchiseId, assignedProducts, totalPrice});
     } catch (error) {
@@ -130,6 +135,65 @@ const handleAssignProductsToFranchise = async (req, res) => {
         return res.status(500).json({ message: 'Internal server error' });
     }
 };
+
+
+
+
+
+
+// Function to save order details for franchise
+const saveOrderDetails = async (franchiseObjectId, franchiseId, products) => {
+  try {
+    // Calculate total amount
+    let totalAmount = 0;
+
+    const productDetails = await Promise.all(
+        products.map(async (product) => {
+          const { productId, quantity, price, bvPoints } = product;
+          totalAmount += price * quantity;
+  
+          const productFound = await Product.findOne({ _id: productId });
+          if (!productFound) {
+            throw new Error(`Product with ID ${productId} not found`);
+          }
+  
+          return {
+            productId,
+            name: productFound.name,
+            quantity,
+            price: price * quantity,
+          };
+        })
+    );
+
+    // Generate a unique order number
+    const orderNumber = Math.floor(100000 + Math.random() * 900000);
+
+    // Create and save the order document
+    const order = new FranchiseOrder({
+      franchiseDetails: {
+        franchise: franchiseObjectId,
+        franchiseId: franchiseId
+      },
+      orderDetails: {
+        orderNumber,
+        totalAmount
+      },
+      products: productDetails,
+    });
+
+    await order.save();
+    console.log('Order saved successfully:', order);
+
+    // return order;
+  } catch (error) {
+    console.error('Error saving order details:', error.message);
+    throw new Error('Failed to save order details');
+  }
+};
+
+
+
 
 
 
@@ -497,6 +561,28 @@ const handleGetAllUsers = async (req, res) => {
 
 
 
+// 9. Get Franchise Orders
+const handleGetFranchiseOrders = async (req, res) => {
+    try {
+        const franchiseId = req.body.franchiseId;
+        if (!franchiseId) {
+            return res.status(400).json({ message: 'Please provide Franchise ID' });
+        }
+        
+        const franchiseOrders = await FranchiseOrder.find( {'franchiseDetails.franchiseId': franchiseId} );
+        if (!franchiseOrders) {
+            return res.status(200).json({ message: 'No Orders Found.' });
+        }
+
+        return res.status(200).json({"orders": franchiseOrders});
+    }
+    catch(e) {
+        console.error('Error fetching franchise:', e);
+        return res.status(500).json({ message: 'Internal server error' });
+    }
+}
+
+
 
 module.exports = {
     handleCreateFranchise,
@@ -506,7 +592,8 @@ module.exports = {
     handleRemoveProductFromFranchiseInventory,
     handleLoginFranchise,
     handleCalculateTotalBill,
-    handleGetAllUsers
+    handleGetAllUsers,
+    handleGetFranchiseOrders
 }
 
 
