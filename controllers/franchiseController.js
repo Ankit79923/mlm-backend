@@ -5,7 +5,7 @@ const BVPoints = require('../models/user-models/bvPoints');
 const User = require('../models/user-models/users');
 const { generateToken } = require('../middlewares/jwt');
 const client = require('../config/redis');
-const FranchiseOrder = require('../models/admin-models/franchiseOrders'); // Adjust path as needed
+const FranchiseOrder = require('../models/franchise-models/franchiseOrders'); // Adjust path as needed
 
 
 
