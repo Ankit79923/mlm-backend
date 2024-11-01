@@ -55,4 +55,4 @@ const userOrderSchema = new mongoose.Schema({
   ]
 });
 
-module.exports = mongoose.model('FranchiseOrder', franchiseOrderSchema);
+// module.exports = mongoose.model('FranchiseOrder', franchiseOrderSchema);
