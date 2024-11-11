@@ -1,11 +1,11 @@
-const Franchise = require('../models/franchise-models/franchise'); 
+const Franchise = require('../models/franchise-models/franchise');
 const Product = require('../models/admin-models/products');
 const Inventory = require('../models/franchise-models/inventory');
 const BVPoints = require('../models/user-models/bvPoints');
 const User = require('../models/user-models/users');
 const { generateToken } = require('../middlewares/jwt');
 const client = require('../config/redis');
-const FranchiseOrder = require('../models/franchise-models/franchiseOrders'); 
+const FranchiseOrder = require('../models/franchise-models/franchiseOrders');
 const UserOrder = require('../models/user-models/userOrders');
 
 
@@ -18,15 +18,15 @@ const handleCreateFranchise = async (req, res) => {
         // Check if the franchise email already exists
         const existingFranchise = await Franchise.findOne({ email });
         if (existingFranchise) {
-          return res.status(400).json({ message: 'Franchise already exists with this email.' });
+            return res.status(400).json({ message: 'Franchise already exists with this email.' });
         }
-  
+
         // Check if the franchise contactInfo already exists
         const contactNumber = await Franchise.findOne({ contactInfo });
         if (contactNumber) {
-          return res.status(400).json({ message: 'Franchise already exists with this contact Number.' });
+            return res.status(400).json({ message: 'Franchise already exists with this contact Number.' });
         }
-    
+
         // Create a new franchise
         const newFranchise = await Franchise.create({
             franchiseName,
@@ -34,11 +34,11 @@ const handleCreateFranchise = async (req, res) => {
             password: password, // Store hashed password
             contactInfo,
         });
-    
-        return res.status(201).json( {message: 'Franchise created successfully', franchiseId: newFranchise.franchiseId} );
+
+        return res.status(201).json({ message: 'Franchise created successfully', franchiseId: newFranchise.franchiseId });
     } catch (error) {
-      console.error('Error creating franchise:', error);
-      return res.status(500).json({ message: 'Server error', error: error.message });
+        console.error('Error creating franchise:', error);
+        return res.status(500).json({ message: 'Server error', error: error.message });
     }
 }
 
@@ -46,7 +46,7 @@ const handleCreateFranchise = async (req, res) => {
 
 
 // 2. Get all Franchises - only by admin
- const handleGetAllFranchises = async (req, res) => {
+const handleGetAllFranchises = async (req, res) => {
     try {
         const franchises = await Franchise.find({});
         return res.status(200).json(franchises);
@@ -62,7 +62,7 @@ const handleCreateFranchise = async (req, res) => {
 // 3. Assign Products to Franchise - only by admin
 const handleAssignProductsToFranchise = async (req, res) => {
     try {
-        const { franchiseId } = req.params; 
+        const { franchiseId } = req.params;
         const { products } = req.body;
 
         // Find the franchise by franchiseId
@@ -91,7 +91,7 @@ const handleAssignProductsToFranchise = async (req, res) => {
             if (!productFound) { return res.status(404).json({ message: `Product with ID ${productId} not found.` }); }
 
             // Check if the product quantity is available
-            if( productFound.stock < quantity ) {
+            if (productFound.stock < quantity) {
                 return res.status(200).json({ message: `Product with productId: ${productId} has only ${productFound.stock} quantity in Stock.` });
             }
 
@@ -103,11 +103,11 @@ const handleAssignProductsToFranchise = async (req, res) => {
                 existingInventoryItem.quantity += quantity;     // Update quantity
                 existingInventoryItem.price = price;            // Update price
                 existingInventoryItem.bvPoints = bvPoints;      // Update bvPoints
-                totalPrice += price*quantity;                   // Calculate Price
+                totalPrice += price * quantity;                   // Calculate Price
             } else {
                 // If product does not exist, add it to the franchie's inventory
                 inventory.products.push({ productId, quantity, price, bvPoints });
-                totalPrice += price*quantity;
+                totalPrice += price * quantity;
             }
 
             assignedProducts.push({ productId, quantity, price, bvPoints });
@@ -130,7 +130,7 @@ const handleAssignProductsToFranchise = async (req, res) => {
         await saveOrderDetails(franchise._id, franchiseId, products);
 
         // Respond with success
-        return res.status(200).json( { message: 'Products assigned successfully to franchise', franchiseId, assignedProducts, totalPrice});
+        return res.status(200).json({ message: 'Products assigned successfully to franchise', franchiseId, assignedProducts, totalPrice });
     } catch (error) {
         console.error(error);
         return res.status(500).json({ message: 'Internal server error' });
@@ -144,54 +144,54 @@ const handleAssignProductsToFranchise = async (req, res) => {
 
 // Function to save order details for franchise
 const saveOrderDetails = async (franchiseObjectId, franchiseId, products) => {
-  try {
-    // Calculate total amount
-    let totalAmount = 0;
+    try {
+        // Calculate total amount
+        let totalAmount = 0;
 
-    const productDetails = await Promise.all(
-        products.map(async (product) => {
-          const { productId, quantity, price, bvPoints } = product;
-          totalAmount += price * quantity;
-  
-          const productFound = await Product.findOne({ _id: productId });
-          if (!productFound) {
-            throw new Error(`Product with ID ${productId} not found`);
-          }
-  
-          return {
-            productId,
-            name: productFound.name,
-            quantity,
-            price,
-            totalAmount: price * quantity,
-          };
-        })
-    );
+        const productDetails = await Promise.all(
+            products.map(async (product) => {
+                const { productId, quantity, price, bvPoints } = product;
+                totalAmount += price * quantity;
 
-    // Generate a unique order number
-    const orderNumber = await generateUniqueFranchiseOrderNumber();
+                const productFound = await Product.findOne({ _id: productId });
+                if (!productFound) {
+                    throw new Error(`Product with ID ${productId} not found`);
+                }
 
-    // Create and save the order document
-    const order = new FranchiseOrder({
-      franchiseDetails: {
-        franchise: franchiseObjectId,
-        franchiseId: franchiseId
-      },
-      orderDetails: {
-        orderNumber,
-        totalAmount
-      },
-      products: productDetails,
-    });
+                return {
+                    productId,
+                    name: productFound.name,
+                    quantity,
+                    price,
+                    totalAmount: price * quantity,
+                };
+            })
+        );
 
-    await order.save();
-    console.log('Order saved successfully:', order);
+        // Generate a unique order number
+        const orderNumber = await generateUniqueFranchiseOrderNumber();
 
-    // return order;
-  } catch (error) {
-    console.error('Error saving order details:', error.message);
-    throw new Error('Failed to save order details');
-  }
+        // Create and save the order document
+        const order = new FranchiseOrder({
+            franchiseDetails: {
+                franchise: franchiseObjectId,
+                franchiseId: franchiseId
+            },
+            orderDetails: {
+                orderNumber,
+                totalAmount
+            },
+            products: productDetails,
+        });
+
+        await order.save();
+        console.log('Order saved successfully:', order);
+
+        // return order;
+    } catch (error) {
+        console.error('Error saving order details:', error.message);
+        throw new Error('Failed to save order details');
+    }
 };
 
 
@@ -199,20 +199,20 @@ const saveOrderDetails = async (franchiseObjectId, franchiseId, products) => {
 const generateUniqueFranchiseOrderNumber = async () => {
     let orderNumber;
     let isUnique = false;
-  
+
     while (!isUnique) {
-      // Generate a random 7-digit number
-      orderNumber = Math.floor(1000000 + Math.random() * 9000000);
-  
-      // Check if this order number already exists in the database
-      const existingOrder = await FranchiseOrder.findOne({ "orderDetails.orderNumber": orderNumber });
-      if (!existingOrder) {
-        isUnique = true;
-      }
+        // Generate a random 7-digit number
+        orderNumber = Math.floor(1000000 + Math.random() * 9000000);
+
+        // Check if this order number already exists in the database
+        const existingOrder = await FranchiseOrder.findOne({ "orderDetails.orderNumber": orderNumber });
+        if (!existingOrder) {
+            isUnique = true;
+        }
     }
-  
+
     return orderNumber;
-  };
+};
 
 
 
@@ -296,7 +296,7 @@ const handleGetFranchiesInventory = async (req, res) => {
 
 
 
- 
+
 
 
 // 5. Remove Product from Franchise Inventory - only by admin
@@ -307,12 +307,12 @@ const handleGetFranchiesInventory = async (req, res) => {
 const handleRemoveProductFromFranchiseInventory = async (req, res) => {
     try {
         const { franchiseId, productId } = req.params;
-        if (!franchiseId ||!productId) { return res.status(400).json({ message: 'Please provide both Franchise ID and Product ID' }); }
-        
-        
+        if (!franchiseId || !productId) { return res.status(400).json({ message: 'Please provide both Franchise ID and Product ID' }); }
+
+
         // Find the franchise by franchiseId
         const franchise = await Franchise.findOne({ franchiseId });
-        if (!franchise) { return res.status(404).json({ message: 'Franchise not found with the provided Franchise ID' }); } 
+        if (!franchise) { return res.status(404).json({ message: 'Franchise not found with the provided Franchise ID' }); }
 
 
         // Find the inventory for the franchise
@@ -355,14 +355,14 @@ const handleRemoveProductFromFranchiseInventory = async (req, res) => {
 const handleLoginFranchise = async (req, res) => {
     try {
         const { franchiseId, password } = req.body;
-        if ( !franchiseId || !password ) { return res.status(400).json({ message: 'Please provide both franchiseId and password.' }); }
+        if (!franchiseId || !password) { return res.status(400).json({ message: 'Please provide both franchiseId and password.' }); }
 
         // Find the franchise by email
         const franchise = await Franchise.findOne({ franchiseId });
         if (!franchise) { return res.status(401).json({ message: 'Invalid franchiseId.' }); }
 
         // Check the password
-        const isPasswordMatch = franchise.password === password? true : false;
+        const isPasswordMatch = franchise.password === password ? true : false;
         if (isPasswordMatch) {
             const payload = { email: franchise.email, id: franchise._id, role: 'franchise' };
             const token = generateToken(payload);
@@ -402,19 +402,19 @@ const handleCalculateTotalBill = async (req, res) => {
         for (let product of products) {
             const { productId, quantity } = product;
             if (!productId || !quantity) { return res.status(400).json({ message: 'Please provide both Product ID and Quantity for each product.' }); }
-            
+
             // const productFound = inventory.products.find(item => item.productId.toString() === productId);
-            const productFound = inventory.products.find( function(item) {
+            const productFound = inventory.products.find(function (item) {
                 return item.productId.toString() === productId;
-            } );
+            });
             if (!productFound) { return res.status(404).json({ message: `Product with ID ${productId} not found in your inventory.` }); }
-            
+
             if (productFound.quantity < quantity) {
                 return res.status(200).json({ message: `Product with productId: ${productId} has only ${productFound.quantity} quantity in Stock.` });
             }
         }
         // console.log('All products found in inventory & Stock is also available.');
-        
+
 
         // Calculate total bill
         const orderNumber = 5;
@@ -423,7 +423,7 @@ const handleCalculateTotalBill = async (req, res) => {
         for (let product of products) {
             const { productId, quantity } = product;
             const productFound = inventory.products.find(item => item.productId.toString() === productId);
-            
+
             // Reduce the product's stock
             productFound.quantity -= quantity;
             await inventory.save();
@@ -434,19 +434,19 @@ const handleCalculateTotalBill = async (req, res) => {
             totalPrice += productFound.price * quantity;
 
             // Add products purchased to user schema field 'productsPurchased'
-            const totalAmountPaid =  productFound.price * quantity
+            const totalAmountPaid = productFound.price * quantity
             const price = productFound.price;
             // console.log(productId, quantity, price, totalAmountPaid, bvPointsEarned, orderNumber);
-            
-            user.productsPurchased.push({ 
-                productId, 
-                quantity, 
-                price: price, 
-                totalAmountPaid: totalAmountPaid, 
+
+            user.productsPurchased.push({
+                productId,
+                quantity,
+                price: price,
+                totalAmountPaid: totalAmountPaid,
                 BVPointsEarned: bvPointsEarned,
                 orderNumber: orderNumber
             });
-            if(user.isActive === false) {
+            if (user.isActive === false) {
                 user.isActive = true;
             }
             await user.save();
@@ -456,7 +456,7 @@ const handleCalculateTotalBill = async (req, res) => {
 
         await addPersonalBVpoints(user, totalBvPoints);
         await addBvPointsToAncestors(user, totalBvPoints);
-        // await createUserOrder(user, totalBvPoints);
+        await createUserOrder(user, totalPrice, totalBvPoints, products);
 
         return res.status(200).json({ message: 'Total bill calculated successfully', totalPrice });
     } catch (error) {
@@ -476,7 +476,7 @@ async function addPersonalBVpoints(user, totalBvPoints) {
             user.isActive = true;
             await user.save();
         }
-        
+
         userBVPoints.personalBV += totalBvPoints;
         await userBVPoints.save();
     } catch (error) {
@@ -489,7 +489,7 @@ async function addBvPointsToAncestors(user, totalBvPoints) {
     try {
         let currentUser = user;
         let rcvdSponsorId = user.sponsorId;
-        
+
         while (currentUser.parentSponsorId) {                                                                    // Traverse through the ancestors and update their BV points
             const ancestor = await User.findOne({ mySponsorId: currentUser.parentSponsorId });
             if (!ancestor) break;
@@ -500,9 +500,9 @@ async function addBvPointsToAncestors(user, totalBvPoints) {
                 // If BVPoints document doesn't exist, create a new one
                 // Create a new BVPoint Doc only if user is Active.
                 // ancestorBVPoints = new BVPoints({ userId: ancestor._id });
-                if(ancestor.isActive === true) {
+                if (ancestor.isActive === true) {
                     ancestorBVPoints = new BVPoints({ userId: ancestor._id });
-                } else if(ancestor.isActive === false) {
+                } else if (ancestor.isActive === false) {
                     currentUser = ancestor;
                     continue;
                 }
@@ -511,14 +511,14 @@ async function addBvPointsToAncestors(user, totalBvPoints) {
 
             // Check if current user (purchaser) is in the left or right subtree of ancestor
             const isInLeftTree = await checkIfInLeftTree(ancestor, currentUser);
-            if (isInLeftTree)  { 
-                ancestorBVPoints.totalBV.leftBV += totalBvPoints; 
-                ancestorBVPoints.currentWeekBV.leftBV += totalBvPoints; 
-                ancestorBVPoints.currentMonthBV.leftBV += totalBvPoints; 
+            if (isInLeftTree) {
+                ancestorBVPoints.totalBV.leftBV += totalBvPoints;
+                ancestorBVPoints.currentWeekBV.leftBV += totalBvPoints;
+                ancestorBVPoints.currentMonthBV.leftBV += totalBvPoints;
                 await ancestorBVPoints.save();
-            } 
-            else { 
-                ancestorBVPoints.totalBV.rightBV += totalBvPoints; 
+            }
+            else {
+                ancestorBVPoints.totalBV.rightBV += totalBvPoints;
                 ancestorBVPoints.currentWeekBV.rightBV += totalBvPoints;
                 ancestorBVPoints.currentMonthBV.rightBV += totalBvPoints;
                 await ancestorBVPoints.save();
@@ -528,7 +528,7 @@ async function addBvPointsToAncestors(user, totalBvPoints) {
                 // This ancestor is the sponsor of buyer.
                 // add Direct BV Points to ancestors bvPoints Schema.
                 // Check if current user (purchaser) is in the left or right subtree of ancestor
-                if (isInLeftTree)  { ancestorBVPoints.directBV.leftBV += totalBvPoints; } 
+                if (isInLeftTree) { ancestorBVPoints.directBV.leftBV += totalBvPoints; }
                 else { ancestorBVPoints.directBV.rightBV += totalBvPoints; }
                 await ancestorBVPoints.save();
             }
@@ -557,80 +557,84 @@ async function checkIfInLeftTree(ancestor, user) {
             return false;
         }
     }
-    
+
     return false;
 }
 
 
-// // Function to save order details for franchise
-// const saveUserOrderDetails = async () => {
-//     try {
-//       // Calculate total amount
-//       let totalAmount = 0;
-  
-//       const productDetails = await Promise.all(
-//           products.map(async (product) => {
-//             const { productId, quantity, price, bvPoints } = product;
-//             totalAmount += price * quantity;
-    
-//             const productFound = await Product.findOne({ _id: productId });
-//             if (!productFound) {
-//               throw new Error(`Product with ID ${productId} not found`);
-//             }
-    
-//             return {
-//               productId,
-//               name: productFound.name,
-//               quantity,
-//               price,
-//               totalAmount: price * quantity,
-//             };
-//           })
-//       );
-  
-//       // Generate a unique order number
-//       const orderNumber = await generateUniqueFranchiseOrderNumber();
-  
-//       // Create and save the order document
-//       const order = new FranchiseOrder({
-//         franchiseDetails: {
-//           franchise: franchiseObjectId,
-//           franchiseId: franchiseId
-//         },
-//         orderDetails: {
-//           orderNumber,
-//           totalAmount
-//         },
-//         products: productDetails,
-//       });
-  
-//       await order.save();
-//       console.log('Order saved successfully:', order);
-  
-//       // return order;
-//     } catch (error) {
-//       console.error('Error saving order details:', error.message);
-//       throw new Error('Failed to save order details');
-//     }
-//   };
-  
-  
+// Function to save order details for franchise
+async function createUserOrder(user, totalPrice, totalBvPoints, products) {
+    try {
+        // Generate a unique order number
+        // const orderNumber = await generateUniqueFranchiseOrderNumber();
+        const orderNumber = 55001;
+
+        // Prepare product details directly from `products`
+        const productDetails = [];
+        for (let product of products) {
+            // Retrieve the full product details using the productId
+            const productData = await Product.findById(product.productId);
+            if (!productData) {
+                console.error(`Product with ID ${product.productId} not found`);
+                continue; // Skip this product if not found
+            }
+
+            productDetails.push({
+                productId: product.productId,
+                name: productData.name, // Get the product name from the retrieved data
+                quantity: product.quantity,
+                price: productData.price, // Use the price from the product data
+                totalAmount: productData.price * product.quantity
+            });
+        }
+
+        // Prepare product details directly from `products`
+        // const productDetails = products.map(product => ({
+        //     productId: product.productId,
+        //     name: "Product Name", // Use actual name if available in inventory or products array
+        //     quantity: product.quantity,
+        //     price: product.price, // Assuming price is in `products`
+        //     totalAmount: product.price * product.quantity
+        // }));
+
+        // Create and save the order document
+        const order = new UserOrder({
+            userDetails: {
+                user: user._id
+            },
+            orderDetails: {
+                orderNumber: orderNumber,
+                totalAmount: totalPrice,
+                totalBVPoints: totalBvPoints
+            },
+            products: productDetails,
+        });
+
+        await order.save();
+        console.log('User Order saved successfully:', order);
+    } catch (error) {
+        console.error('Error saving user order details:', error.message);
+        throw new Error('Failed to save order details');
+    }
+};
+
+
 // // helper => generate Unique Franchise Order Number
 // const generateUniqueUserOrderNumber = async () => {
 //       let orderNumber;
 //       let isUnique = false;
-    
+
 //       while (!isUnique) {
 //         // Generate a random 7-digit number
 //         orderNumber = Math.floor(1000000 + Math.random() * 9000000);
-    
+
 //         // Check if this order number already exists in the database
 //         const existingOrder = await UserOrder.findOne({ "orderDetails.orderNumber": orderNumber });
 //         if (!existingOrder) {
 //           isUnique = true;
 //         }
 //       }
-    
+
 //       return orderNumber;
 // };
 
@@ -659,15 +663,15 @@ const handleGetFranchiseOrders = async (req, res) => {
         if (!franchiseId) {
             return res.status(400).json({ message: 'Please provide Franchise ID' });
         }
-        
-        const franchiseOrders = await FranchiseOrder.find( {'franchiseDetails.franchiseId': franchiseId} );
+
+        const franchiseOrders = await FranchiseOrder.find({ 'franchiseDetails.franchiseId': franchiseId });
         if (!franchiseOrders) {
             return res.status(200).json({ message: 'No Orders Found.' });
         }
 
-        return res.status(200).json({"orders": franchiseOrders});
+        return res.status(200).json({ "orders": franchiseOrders });
     }
-    catch(e) {
+    catch (e) {
         console.error('Error fetching franchise:', e);
         return res.status(500).json({ message: 'Internal server error' });
     }
