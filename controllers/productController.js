@@ -310,6 +310,20 @@ async function handleGetMyOrders(req, res) {
 }
 
 
+
+
+// Assign Products to users by => Admin
+// async function handleAssignProductsToUsersByAdmin(req, res) {
+//     try{
+        
+//     } catch (error) {
+//         res.status(500).json({ error: 'Error adding product to cart', message: error.message });
+//     }
+// }
+
+
+
+
 module.exports = {
     handleAddProduct,
     handleEditProduct,
