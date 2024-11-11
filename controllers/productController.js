@@ -313,13 +313,151 @@ async function handleGetMyOrders(req, res) {
 
 
 // Assign Products to users by => Admin
-// async function handleAssignProductsToUsersByAdmin(req, res) {
-//     try{
+async function handleAssignProductsToUsersByAdmin(req, res) {
+    try {
+        const { mySponsorId } = req.params;
+        const { products } = req.body;
+
+        console.log(mySponsorId);
+        console.log(products);
         
-//     } catch (error) {
-//         res.status(500).json({ error: 'Error adding product to cart', message: error.message });
-//     }
-// }
+
+        // Find the user by mySponsorId
+        const user = await User.findOne({ mySponsorId });
+        if (!user) { return res.status(404).json({ message: 'Incorrect mySponsorId' }); }
+
+        
+        // Loop through products and check if all products are in stock.
+        const assignedProducts = [];
+        let totalPrice = 0;
+        let totalBVPoints = 0;
+        for (const product of products) {
+            const { productId, quantity, price, bvPoints } = product;
+            if (!productId || !quantity || !price || !bvPoints) {
+                return res.status(400).json({ message: 'Please enter all the Required fields.' });
+            }
+
+            // Check if the product exists in Products collection
+            const productFound = await Product.findById(productId);
+            if (!productFound) { return res.status(404).json({ message: `Product with ID ${productId} not found.` }); }
+
+            // Check if the product quantity is available
+            if (productFound.stock < quantity) {
+                return res.status(200).json({ message: `Product with productId: ${productId} has only ${productFound.stock} quantity in Stock.` });
+            }
+
+            totalPrice += quantity * price;
+            totalBVPoints += quantity * bvPoints;
+
+            assignedProducts.push({ productId, quantity, price, bvPoints });
+
+            // Invalidate the cached products data
+            await client.del(`product:productId:${productId}`);
+        }
+
+
+
+        // Now, all the products are available with stock.
+        for (const product of products) {
+            const { productId, quantity, price, bvPoints } = product;
+            if (!productId || !quantity || !price || !bvPoints) {
+                return res.status(400).json({ message: 'Please enter all the Required fields.' });
+            }
+
+            // Check if the product exists in Products collection
+            const productFound = await Product.findById(productId);
+            if (!productFound) { return res.status(404).json({ message: `Product with ID ${productId} not found.` }); }
+
+            // Check if the product quantity is available
+            if (productFound.stock < quantity) {
+                return res.status(200).json({ message: `Product with productId: ${productId} has only ${productFound.stock} quantity in Stock.` });
+            }
+
+            // Update the Products stock.
+            productFound.stock -= quantity;
+            await productFound.save();
+        }
+
+        // Call saveOrderDetails after assigning products
+        await createUserOrder(user, totalPrice, totalBVPoints, products);
+
+        // Invalidate the cached products data
+        await client.del('product:allProducts');
+
+        // Respond with success
+        return res.status(200).json({ message: 'Products assigned successfully to users', mySponsorId, assignedProducts, totalPrice });
+    } catch (error) {
+        console.error(error);
+        return res.status(500).json({ message: 'Internal server error' });
+    }
+}
+
+
+async function createUserOrder(user, totalPrice, totalBvPoints, products) {
+    try {
+        // Generate a unique order number
+        const orderNumber = await generateUniqueUserOrderNumber();
+        // const orderNumber = 55001;
+
+        // Prepare product details directly from `products`
+        const productDetails = [];
+        for (let product of products) {
+            // Retrieve the full product details using the productId
+            const productData = await Product.findById(product.productId);
+            if (!productData) {
+                console.error(`Product with ID ${product.productId} not found`);
+                continue; // Skip this product if not found
+            }
+
+            productDetails.push({
+                productId: product.productId,
+                name: productData.name, // Get the product name from the retrieved data
+                quantity: product.quantity,
+                price: productData.price, // Use the price from the product data
+                totalAmount: productData.price * product.quantity
+            });
+        }
+
+        // Create and save the order document
+        const order = new UserOrder({
+            userDetails: {
+                user: user._id
+            },
+            orderDetails: {
+                orderNumber: orderNumber,
+                totalAmount: totalPrice,
+                totalBVPoints: totalBvPoints
+            },
+            products: productDetails,
+        });
+
+        await order.save();
+        console.log('User Order saved successfully:', order);
+    } catch (error) {
+        console.error('Error saving user order details:', error.message);
+        throw new Error('Failed to save order details.');
+    }
+};
+
+
+// helper => generate Unique User Order Number
+const generateUniqueUserOrderNumber = async () => {
+      let orderNumber;
+      let isUnique = false;
+
+      while (!isUnique) {
+        // Generate a random 7-digit number
+        orderNumber = Math.floor(1000000 + Math.random() * 9000000);
+
+        // Check if this order number already exists in the database
+        const existingOrder = await UserOrder.findOne({ "orderDetails.orderNumber": orderNumber });
+        if (!existingOrder) {
+          isUnique = true;
+        }
+      }
+
+      return orderNumber;
+};
 
 
 
@@ -334,5 +472,6 @@ module.exports = {
     handleAddProductsToCart,
     handleAddProductToWishlist,
     handleAddProductToCart,
-    handleGetMyOrders
+    handleGetMyOrders,
+    handleAssignProductsToUsersByAdmin
 }

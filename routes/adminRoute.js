@@ -3,7 +3,7 @@ const router = express.Router();
 const upload = require('../middlewares/multer'); 
 const { isAdminMiddleware } = require('../middlewares/jwt');
 const { handleAdminLogin, handleCreateAdmin} = require('../controllers/adminController');
-const { handleAddProduct, handleEditProduct, handleDeleteProduct, handleViewProducts, handleClearAllRedisCache } = require('../controllers/productController');
+const { handleAddProduct, handleEditProduct, handleDeleteProduct, handleViewProducts, handleClearAllRedisCache, handleAssignProductsToUsersByAdmin } = require('../controllers/productController');
 const { handleCreateFranchise, handleGetAllFranchises, handleAssignProductsToFranchise, handleGetFranchiesInventory, handleRemoveProductFromFranchiseInventory, handleGetFranchiseOrders } = require('../controllers/franchiseController');   
 const { handleGetAllNonVerifiedKycUsers, handleVerifyKYCDetails, handleRejectKYCDetails, handleGetAllVerifiedKycUsers } = require('../controllers/kycController');
 
@@ -28,6 +28,8 @@ router.get('/getAllFranchies',  handleGetAllFranchises);
 router.post('/franchise/:franchiseId/assign-products', handleAssignProductsToFranchise);
 router.get('/franchise/:franchiseId/assigned-products', handleGetFranchiesInventory);
 router.delete('/franchise/:franchiseId/remove-product/:productId', handleRemoveProductFromFranchiseInventory);
+
+router.post('/user/:mySponsorId/assign-products', handleAssignProductsToUsersByAdmin);
 
 
 router.get('/kycVerification/pending', handleGetAllNonVerifiedKycUsers);
