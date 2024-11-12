@@ -417,46 +417,26 @@ const handleCalculateTotalBill = async (req, res) => {
 
 
         // Calculate total bill
-        const orderNumber = 5;
         let totalPrice = 0;
         let totalBvPoints = 0;
         for (let product of products) {
             const { productId, quantity } = product;
             const productFound = inventory.products.find(item => item.productId.toString() === productId);
-
             // Reduce the product's stock
             productFound.quantity -= quantity;
             await inventory.save();
-
             // Total bv points earned in this purchase
-            const bvPointsEarned = quantity * productFound.bvPoints;
-            totalBvPoints += bvPointsEarned;
+            totalBvPoints += quantity * productFound.bvPoints;
             totalPrice += productFound.price * quantity;
-
-            // Add products purchased to user schema field 'productsPurchased'
-            const totalAmountPaid = productFound.price * quantity
-            const price = productFound.price;
-            // console.log(productId, quantity, price, totalAmountPaid, bvPointsEarned, orderNumber);
-
-            user.productsPurchased.push({
-                productId,
-                quantity,
-                price: price,
-                totalAmountPaid: totalAmountPaid,
-                BVPointsEarned: bvPointsEarned,
-                orderNumber: orderNumber
-            });
-            if (user.isActive === false) {
-                user.isActive = true;
-            }
-            await user.save();
-
-            // console.log(`User with ID ${user._id} has purchased product with ID ${productId} and quantity ${quantity}.`);
         }
 
         await addPersonalBVpoints(user, totalBvPoints);
         await addBvPointsToAncestors(user, totalBvPoints);
         await createUserOrder(user, totalPrice, totalBvPoints, products);
+        if (user.isActive === false) {
+            user.isActive = true;
+            await user.save();
+        }
 
         return res.status(200).json({ message: 'Total bill calculated successfully', totalPrice });
     } catch (error) {

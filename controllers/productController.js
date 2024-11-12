@@ -381,6 +381,22 @@ async function handleAssignProductsToUsersByAdmin(req, res) {
         // Call saveOrderDetails after assigning products
         await createUserOrder(user, totalPrice, totalBVPoints, products);
 
+
+        // If user isn't active, make it active.
+        if(user.isActive === false) {
+            user.isActive = true;
+            await user.save;
+        }
+
+
+        // Add Personal BV points
+
+
+
+        // Add BV points to ancestors
+        
+
+
         // Invalidate the cached products data
         await client.del('product:allProducts');
 

@@ -92,38 +92,6 @@ const userSchema = new mongoose.Schema({
     default: 0,
   },
   // ---------------------------------------------------------------------------------------------
-  productsPurchased: [
-    {
-      productId: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'Product',
-      },
-      quantity: {
-        type: Number,
-        required: true,
-      },
-      price: {
-        type: Number,
-        required: true,
-      },
-      totalAmountPaid: {
-        type: Number,
-        required: true,
-      },
-      BVPointsEarned: {
-        type: Number,
-        required: true
-      },
-      orderNumber: {
-        type: Number,
-        required: true,
-      },
-      date: {
-        type: Date,
-        default: Date.now,
-      }
-    }
-  ],
   isActive: {
     type: Boolean,
     default: false,
