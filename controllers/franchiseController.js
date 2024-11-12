@@ -659,7 +659,10 @@ module.exports = {
     handleLoginFranchise,
     handleCalculateTotalBill,
     handleGetAllUsers,
-    handleGetFranchiseOrders
+    handleGetFranchiseOrders,
+
+    addPersonalBVpoints,
+    addBvPointsToAncestors
 }
 
 

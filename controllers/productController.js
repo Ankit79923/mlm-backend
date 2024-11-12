@@ -2,6 +2,7 @@ const User = require('../models/user-models/users');
 const Product = require('../models/admin-models/products');
 const Wishlist = require('../models/user-models/wishlists');
 const { generateToken, verifyTokenMiddleware } = require('../middlewares/jwt');
+const { addPersonalBVpoints, addBvPointsToAncestors } = require('./franchiseController');
 const client = require('../config/redis');
 const UserOrder = require('../models/user-models/userOrders');
 
@@ -381,21 +382,16 @@ async function handleAssignProductsToUsersByAdmin(req, res) {
         // Call saveOrderDetails after assigning products
         await createUserOrder(user, totalPrice, totalBVPoints, products);
 
-
-        // If user isn't active, make it active.
+        // If user isn't active, update isActive = true.
         if(user.isActive === false) {
             user.isActive = true;
             await user.save;
         }
 
-
-        // Add Personal BV points
-
-
-
-        // Add BV points to ancestors
+        // Add Personal BV points + Add BV points to ancestors
+        await addPersonalBVpoints(user, totalBVPoints);
+        await addBvPointsToAncestors(user, totalBVPoints);
         
-
 
         // Invalidate the cached products data
         await client.del('product:allProducts');
