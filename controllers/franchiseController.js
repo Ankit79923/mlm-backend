@@ -77,11 +77,28 @@ const handleAssignProductsToFranchise = async (req, res) => {
             inventory = await Inventory.create({ franchiseId: franchise._id, products: [] });
         }
 
+        // Loop through products & check if all products are available in stock OR not.
+        for (const product of products) {
+            const { productId, quantity, price, bvPoints } = product; 
+            if (!productId || !quantity || !price || !bvPoints) {
+                return res.status(400).json({ message: 'Please enter all the Required fields.' });
+            }
+
+            // Check if the product exists in Products collection
+            const productFound = await Product.findById(productId);
+            if (!productFound) { return res.status(404).json({ message: `Product with ID ${productId} not found.` }); }
+
+            // Check if the product quantity is available
+            if (productFound.stock < quantity) {
+                return res.status(200).json({ message: `Product: ${productFound.name} has only ${productFound.stock} quantity in Stock.` });
+            }
+        }
+
         // Loop through products and update inventory
         const assignedProducts = [];
         let totalPrice = 0;
         for (const product of products) {
-            const { productId, quantity, price, bvPoints } = product; // Destructure all necessary fields
+            const { productId, quantity, price, bvPoints } = product; 
             if (!productId || !quantity || !price || !bvPoints) {
                 return res.status(400).json({ message: 'Please enter all the Required fields.' });
             }
