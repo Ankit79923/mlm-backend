@@ -118,9 +118,11 @@ async function handleRegisterUser(req, res) {
         if (whatsappNumberFound) { return res.status(404).json({ message: 'Whatsapp number is already registered' }); }
 
         // Check if GST number is already registered
-        if(gstNumber !== undefined) {
-            let gstNumberFound = await User.findOne({ gstNumber: gstNumber });
-            if (gstNumberFound) { return res.status(404).json({ message: 'GST number is already registered' }); }
+        if(gstNumber !== undefined ) {
+            if(gstNumber !== ""){
+                let gstNumberFound = await User.findOne({ gstNumber: gstNumber });
+                if (gstNumberFound) { return res.status(404).json({ message: 'GST number is already registered' }); }
+            }
         }
         
         
