@@ -210,9 +210,11 @@ async function handleRegisterUsingLeftLink(req, res) {
         if (whatsappNumberFound) { return res.status(404).json({ message: 'Whatsapp number is already registered' }); }
 
         // Check if GST number is already registered
-        if(gstNumber !== undefined) {
-            let gstNumberFound = await User.findOne({ gstNumber: gstNumber });
-            if (gstNumberFound) { return res.status(404).json({ message: 'GST number is already registered' }); }
+        if(gstNumber !== undefined ) {
+            if(gstNumber !== ""){
+                let gstNumberFound = await User.findOne({ gstNumber: gstNumber });
+                if (gstNumberFound) { return res.status(404).json({ message: 'GST number is already registered' }); }
+            }
         }
         
         
@@ -299,14 +301,15 @@ async function handleRegisterUsingRightLink(req, res) {
         if (whatsappNumberFound) { return res.status(404).json({ message: 'Whatsapp number is already registered' }); }
 
         // Check if GST number is already registered
-        if(gstNumber !== undefined) {
-            let gstNumberFound = await User.findOne({ gstNumber: gstNumber });
-            if (gstNumberFound) { return res.status(404).json({ message: 'GST number is already registered' }); }
+        if(gstNumber !== undefined ) {
+            if(gstNumber !== ""){
+                let gstNumberFound = await User.findOne({ gstNumber: gstNumber });
+                if (gstNumberFound) { return res.status(404).json({ message: 'GST number is already registered' }); }
+            }
         }
         
         
         
-        console.log('Reached 1');
         // Generate a unique mySponsorId
         let generatedSponsorId = await generateUniqueSponsorID();
         const leftRefferalLink = `${process.env.DOMAIN_URL}/signupleft/${generatedSponsorId}`;
@@ -335,10 +338,7 @@ async function handleRegisterUsingRightLink(req, res) {
         });
 
         // Attach to sponsor's binary tree
-        console.log('Reached 2');
-        
         await placeInRightSideOfTree(sponsor, newUser);
-        console.log('Reached 3');
         
         return res.status(201).json({ message: 'User registered successfully', user: newUser });
     } catch (error) {
