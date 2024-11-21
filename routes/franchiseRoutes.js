@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { handleGetFranchiesInventory, handleLoginFranchise, handleCalculateTotalBill, handleGetAllUsers } = require('../controllers/franchiseController');
+const { handleGetFranchiesInventory, handleLoginFranchise, handleCalculateTotalBill, handleGetAllUsers, handleGetAllOrdersCreatedByFranchise } = require('../controllers/franchiseController');
 const { isFranchiseMiddleware } = require('../middlewares/jwt');
 
 
@@ -11,6 +11,7 @@ router.post('/login', handleLoginFranchise);
 router.post('/calculateTotalBill', handleCalculateTotalBill);
 router.get('/getAllUsers', handleGetAllUsers);
 
+router.post('/createdOrders', handleGetAllOrdersCreatedByFranchise);
 
 
 module.exports = router;

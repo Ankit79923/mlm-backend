@@ -8,6 +8,11 @@ const userOrderSchema = new mongoose.Schema({
         required: true,
     }
   },
+  franchiseDetails: {
+    franchiseId: {
+        type: String,
+    }
+  },
   orderDetails: {
     orderNumber: {
         type: Number,

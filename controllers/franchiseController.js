@@ -449,7 +449,7 @@ const handleCalculateTotalBill = async (req, res) => {
 
         await addPersonalBVpoints(user, totalBvPoints);
         await addBvPointsToAncestors(user, totalBvPoints);
-        await createUserOrder(user, totalPrice, totalBvPoints, products);
+        await createUserOrder(user, franchiseId, totalPrice, totalBvPoints, products);
         if (user.isActive === false) {
             user.isActive = true;
             await user.save();
@@ -560,7 +560,7 @@ async function checkIfInLeftTree(ancestor, user) {
 
 
 // Function to save order details for franchise
-async function createUserOrder(user, totalPrice, totalBvPoints, products) {
+async function createUserOrder(user, franchiseId, totalPrice, totalBvPoints, products) {
     try {
         // Generate a unique order number
         const orderNumber = await generateUniqueUserOrderNumber();
@@ -590,6 +590,9 @@ async function createUserOrder(user, totalPrice, totalBvPoints, products) {
             userDetails: {
                 user: user._id
             },
+            franchiseDetails: {
+                franchiseId: franchiseId
+            },
             orderDetails: {
                 orderNumber: orderNumber,
                 totalAmount: totalPrice,
@@ -597,6 +600,7 @@ async function createUserOrder(user, totalPrice, totalBvPoints, products) {
             },
             products: productDetails,
         });
+        
 
         await order.save();
         console.log('User Order saved successfully:', order);
@@ -667,6 +671,23 @@ const handleGetFranchiseOrders = async (req, res) => {
 
 
 
+// 10. Get all Orders created by Franchise
+const handleGetAllOrdersCreatedByFranchise = async (req, res) => {
+    try{
+        const { franchiseId } = req.body;      // It is not ObjectId, BUT franchiseCode -> so it is a String
+        if (!franchiseId) {
+            return res.status(400).json({ message: 'Please provide franchiseId.' });
+        }
+
+        const franchiseOrders = await UserOrder.find({ 'franchiseDetails.franchiseId': franchiseId });
+        return res.status(200).json({ franchiseOrders });
+    }catch (e) {
+        console.error('Error fetching orders:', e);
+        return res.status(500).json({ message: e.message });
+    }
+}
+
+
 module.exports = {
     handleCreateFranchise,
     handleGetAllFranchises,
@@ -677,6 +698,7 @@ module.exports = {
     handleCalculateTotalBill,
     handleGetAllUsers,
     handleGetFranchiseOrders,
+    handleGetAllOrdersCreatedByFranchise,
 
     addPersonalBVpoints,
     addBvPointsToAncestors
