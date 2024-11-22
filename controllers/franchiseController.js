@@ -588,7 +588,8 @@ async function createUserOrder(user, franchiseId, totalPrice, totalBvPoints, pro
         // Create and save the order document
         const order = new UserOrder({
             userDetails: {
-                user: user._id
+                user: user._id,
+                userName: user.name
             },
             franchiseDetails: {
                 franchiseId: franchiseId
@@ -599,6 +600,7 @@ async function createUserOrder(user, franchiseId, totalPrice, totalBvPoints, pro
                 totalBVPoints: totalBvPoints
             },
             products: productDetails,
+            deliveryMode: 'Franchise'
         });
         
 

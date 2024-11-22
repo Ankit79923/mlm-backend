@@ -6,6 +6,10 @@ const userOrderSchema = new mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User',
         required: true,
+    },
+    userName: {
+      type: String,
+      required: true,
     }
   },
   franchiseDetails: {
@@ -57,7 +61,12 @@ const userOrderSchema = new mongoose.Schema({
         required: true,
       }
     },
-  ]
+  ],
+  deliveryMode: {
+    type: String,
+    enum: ['Admin', 'Franchise'],
+    required: true
+  }
 });
 
 module.exports = mongoose.model('UserOrder', userOrderSchema);

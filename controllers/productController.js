@@ -5,7 +5,7 @@ const { generateToken, verifyTokenMiddleware } = require('../middlewares/jwt');
 const { addPersonalBVpoints, addBvPointsToAncestors } = require('./franchiseController');
 const client = require('../config/redis');
 const UserOrder = require('../models/user-models/userOrders');
-
+const { s3Client, PutObjectCommand } = require('../utils/s3Bucket');
 
 
 // 1. Add Product - done
@@ -18,20 +18,34 @@ async function handleAddProduct(req, res) {
         if(!name || !category || !price || !bvPoints || !description || !stock) {
             return res.status(400).json({ message: 'All fields are required' });
         }
+
+        // Upload the product image to S3 bucket
+        const file = req.file;
+        if (!file) { return res.status(400).json({ message: 'Please upload an image.' }); }
+
+        const params = {
+            Bucket: 'mlm-assets-bucket', // Your S3 bucket name
+            Key: `product-images/${Date.now()}_${file.originalname}`, // Unique file name
+            Body: file.buffer,
+            ContentType: file.mimetype, // Ensure the correct MIME type is set
+        };
+        const command = new PutObjectCommand(params);
+        await s3Client.send(command);
+
+        const publicUrl = `https://${params.Bucket}.s3.ap-south-1.amazonaws.com/${params.Key}`;   // Public URL for the uploaded file   
         
-        console.log("1");
+
+        // Create New Product 
         const newProduct = await Product.create({
             name,
             category,
             price,
             bvPoints,
-            imageName: req.file.filename,
-            imageURL: `${req.protocol}://${req.get('host')}/public/images/uploads/${req.file.filename}`,
+            imageName: req.file.originalname,
+            imageURL: publicUrl,
             description,
             stock
         });
-
-        console.log('2');
         
         // Invalidate the cached products data
         await client.del('product:allProducts');
@@ -53,14 +67,26 @@ async function handleEditProduct(req, res) {
         }
         
         // Update other product fields manually
-        Object.assign(updatedProduct, req.body);
-        console.log(req.body);
-        
+        if(req.body) {
+            Object.assign(updatedProduct, req.body);
+            console.log(req.body);   
+        }
         
         // Only update image fields if a file was uploaded
-        if (req.file) {
-            updatedProduct.imageName = req.file.filename;
-            updatedProduct.imageURL = `${req.protocol}://${req.get('host')}/public/images/uploads/${req.file.filename}`;
+        const file = req.file
+        if (file) {
+            const params = {
+                Bucket: 'mlm-assets-bucket', // Your S3 bucket name
+                Key: `product-images/${Date.now()}_${file.originalname}`, // Unique file name
+                Body: file.buffer,
+                ContentType: file.mimetype, // Ensure the correct MIME type is set
+            };
+            const command = new PutObjectCommand(params);
+            await s3Client.send(command);
+            const publicUrl = `https://${params.Bucket}.s3.ap-south-1.amazonaws.com/${params.Key}`;   // Public URL for the uploaded file   
+            
+            updatedProduct.imageName = req.file.originalname;
+            updatedProduct.imageURL = publicUrl;
         }
         
         // Save the updated product
@@ -433,7 +459,8 @@ async function createUserOrder(user, totalPrice, totalBvPoints, products) {
         // Create and save the order document
         const order = new UserOrder({
             userDetails: {
-                user: user._id
+                user: user._id,
+                userName: user.name,
             },
             orderDetails: {
                 orderNumber: orderNumber,
@@ -441,6 +468,7 @@ async function createUserOrder(user, totalPrice, totalBvPoints, products) {
                 totalBVPoints: totalBvPoints
             },
             products: productDetails,
+            deliveryMode: 'Admin'
         });
 
         await order.save();
