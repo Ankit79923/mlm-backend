@@ -502,6 +502,23 @@ const generateUniqueUserOrderNumber = async () => {
 
 
 
+const handleGetUserOrdersDeliveredByAdmin = async (req, res) => {
+    try{
+        const orders = await UserOrder.find({ "deliveryMode": "Admin" }).sort({ "orderDetails.orderNumber": -1 });
+
+        if (!orders || orders.length === 0) {
+            return res.status(200).json({ message: 'No orders found', orders });
+        }
+
+        return res.status(200).json({ message: 'Orders fetched successfully', orders });
+    }catch(err){
+        console.error('Error fetching orders:', err);
+        return res.status(500).json({ message: 'Internal server error', error: err.message });
+    }
+}
+
+
+
 module.exports = {
     handleAddProduct,
     handleEditProduct,
@@ -513,5 +530,6 @@ module.exports = {
     handleAddProductToWishlist,
     handleAddProductToCart,
     handleGetMyOrders,
-    handleAssignProductsToUsersByAdmin
+    handleAssignProductsToUsersByAdmin,
+    handleGetUserOrdersDeliveredByAdmin
 }

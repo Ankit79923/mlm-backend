@@ -3,7 +3,7 @@ const router = express.Router();
 const { upload } = require('../middlewares/multer'); 
 const { isAdminMiddleware } = require('../middlewares/jwt');
 const { handleAdminLogin, handleCreateAdmin} = require('../controllers/adminController');
-const { handleAddProduct, handleEditProduct, handleDeleteProduct, handleViewProducts, handleClearAllRedisCache, handleAssignProductsToUsersByAdmin } = require('../controllers/productController');
+const { handleAddProduct, handleEditProduct, handleDeleteProduct, handleViewProducts, handleClearAllRedisCache, handleAssignProductsToUsersByAdmin, handleGetUserOrdersDeliveredByAdmin } = require('../controllers/productController');
 const { handleCreateFranchise, handleGetAllFranchises, handleAssignProductsToFranchise, handleGetFranchiesInventory, handleRemoveProductFromFranchiseInventory, handleGetFranchiseOrders } = require('../controllers/franchiseController');   
 const { handleGetAllNonVerifiedKycUsers, handleVerifyKYCDetails, handleRejectKYCDetails, handleGetAllVerifiedKycUsers } = require('../controllers/kycController');
 
@@ -36,5 +36,7 @@ router.get('/kycVerification/pending', handleGetAllNonVerifiedKycUsers);
 router.get('/kycVerification/approved', handleGetAllVerifiedKycUsers)
 router.post('/approveKycVerification', handleVerifyKYCDetails);
 router.post('/rejectKycVerification', handleRejectKYCDetails);
+
+router.get('/createdOrdersForUser', handleGetUserOrdersDeliveredByAdmin);
 
 module.exports = router;
