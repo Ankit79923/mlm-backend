@@ -35,9 +35,6 @@ const handleGetDashboardData = async (req, res) => {
       kycStatus = "KYC Details not submitted.";
     }
 
-    // Fetch the BVPoints document for the given userId
-    // const bvPoints = await BVPoints.findOne({ userId: user._id });
-    //  = user.kycStatus;
 
     // Fetch the BVPoints document for the given userId
     const bvPoints = await BVPoints.findOne({ userId: user._id });
@@ -93,7 +90,8 @@ const handleGetDashboardData = async (req, res) => {
 
     const totalDirectBV = {
       leftDirectBV: bvPoints.directBV.leftBV,
-      rightDirectBV: bvPoints.directBV.rightBV
+      rightDirectBV: bvPoints.directBV.rightBV,
+      total: bvPoints.directBV.leftBV + bvPoints.directBV.rightBV
     }
     
     const totalDirectTeam = {
