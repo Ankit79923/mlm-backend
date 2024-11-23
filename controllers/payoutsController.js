@@ -163,10 +163,13 @@ const handleGetWeeklyPayoutsDetails = async (req, res) => {
     // Format and return the response
     res.status(200).json({
       userId: bvPoints.userId,
+      // weeklyEarnings2: bvPoints.weeklyEarnings,
       weeklyEarnings: bvPoints.weeklyEarnings.map((earning) => ({
         week: earning.week.toISOString().split("T")[0], // Formatting date to "YYYY-MM-DD"
         matchedBV: earning.matchedBV,
         payoutAmount: earning.payoutAmount,
+        _id: earning._id,
+        paymentStatus: earning.paymentStatus,
       })),
     });
   } catch (err) {
@@ -211,6 +214,43 @@ const handleGetMonthlyPayoutsDetails = async (req, res) => {
 
 
 
+// 4. Update Weekly Payout Status
+const handleUpdateWeeklyPayoutStatus = async (req, res) => {
+  try {
+    const { userId, payoutId } = req.params;
+    if (!userId || !payoutId) { return res.status(400).json({ message: "Both userId and payoutId is required." }); }
+
+    // Find the BVPoints document for the given userId
+    const bvPoints = await BVPoints.findOne({ userId: userId });
+    if (!bvPoints) { return res.status(404).json({ message: "BV points not found. No Earning found for this user." }); }
+    
+    // bvPoints is an object, extract weeklyEarnings Array from bvPoints
+    const weeklyEarnings = bvPoints.weeklyEarnings;
+
+    // Iterate over each weekly earnings
+    let i;
+    for(i = 0; i < weeklyEarnings.length; i++){
+      const earning = weeklyEarnings[i];
+      if(earning._id.toString() === payoutId){
+        if(earning.paymentStatus === 'Paid') {
+          return res.status(400).json({ message: "Payout for this week has already been Paid." });  
+        }
+        // Mark the payout as Paid
+        earning.paymentStatus = 'Paid';
+        break;
+      }
+    }
+    if(i === weeklyEarnings.length){
+      return res.status(404).json({ message: "Payout not found for the given payoutId." });
+    }
+
+    await bvPoints.save();
+    res.status(200).json({ message: "Weekly payout updated successfully.", earnings: bvPoints.weeklyEarnings });
+  } catch (e) {
+      console.error("Error updating weekly payout:", e.message);
+      res.status(500).json({ message: "Internal server error", error: e.message });
+  }
+};
 
 
 
@@ -220,5 +260,6 @@ const handleGetMonthlyPayoutsDetails = async (req, res) => {
 module.exports = {
   handleGetDashboardData,
   handleGetWeeklyPayoutsDetails,
-  handleGetMonthlyPayoutsDetails
+  handleGetMonthlyPayoutsDetails,
+  handleUpdateWeeklyPayoutStatus
 };

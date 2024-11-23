@@ -28,7 +28,8 @@ const bvPointsSchema = new mongoose.Schema({
     {
       week: { type: Date, required: true},
       matchedBV: { type: Number, required: true, default: 0},
-      payoutAmount: { type: Number, required: true, default: 0}
+      payoutAmount: { type: Number, required: true, default: 0},
+      paymentStatus: { type: String, enum: ['Pending', 'Paid'], default: 'Pending' },
     }
   ],
   currentMonthBV: {
