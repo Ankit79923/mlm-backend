@@ -452,9 +452,10 @@ const handleCalculateTotalBill = async (req, res) => {
         await createUserOrder(user, franchiseId, totalPrice, totalBvPoints, products);
         if (user.isActive === false) {
             user.isActive = true;
+            user.activeDate = new Date();
             await user.save();
         }
-
+        
         return res.status(200).json({ message: 'Total bill calculated successfully', totalPrice });
     } catch (error) {
         console.error('Error calculating total bill:', error);
@@ -470,8 +471,6 @@ async function addPersonalBVpoints(user, totalBvPoints) {
         if (!userBVPoints) {
             // user BVPoints doesn't exists => user- isActive: false  => create userBVPoints
             userBVPoints = await BVPoints.create({ userId: user._id });
-            user.isActive = true;
-            await user.save();
         }
 
         userBVPoints.personalBV += totalBvPoints;

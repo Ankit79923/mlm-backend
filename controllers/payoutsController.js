@@ -1,4 +1,5 @@
 const User = require("../models/user-models/users");
+const KYC = require("../models/user-models/kyc");
 const BVPoints = require("../models/user-models/bvPoints");
 const mongoose = require("mongoose");
 const { countLeftChild, countRightChild } = require('../utils/placeInBinaryTree');
@@ -22,12 +23,29 @@ const handleGetDashboardData = async (req, res) => {
     let leftTreeUsersCount = await countLeftChild(user);
     let rightTreeUsersCount = await countRightChild(user);
     
+    // Handle activeDate when it is null
+    const activeDate = user.activeDate ? user.activeDate.toISOString().split('T')[0] : "Not active";
+    let kycStatus;
+
+    // Fetch KYC status from the KYC document for the given userId
+    const kyc = await KYC.findOne({ 'userDetails.mySponsorId': user.mySponsorId });
+    if (kyc) {
+      kycStatus = kyc.kycApproved;
+    } else {
+      kycStatus = "KYC Details not submitted.";
+    }
+
+    // Fetch the BVPoints document for the given userId
+    // const bvPoints = await BVPoints.findOne({ userId: user._id });
+    //  = user.kycStatus;
 
     // Fetch the BVPoints document for the given userId
     const bvPoints = await BVPoints.findOne({ userId: user._id });
     if (!bvPoints) {
       // Return 0 earnings if bvPoints is not available
       return res.status(200).json({
+        activeDate,
+        kycStatus,
         weeklyEarning,
         monthlyEarning,
         lifetimeEarning,
@@ -85,6 +103,8 @@ const handleGetDashboardData = async (req, res) => {
 
     // Return the calculated earnings and tree user counts
     return res.status(200).json({
+      activeDate,
+      kycStatus,
       weeklyEarning,
       monthlyEarning,
       lifetimeEarning,
