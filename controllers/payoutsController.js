@@ -272,6 +272,30 @@ const handleUpdateWeeklyPayoutStatus = async (req, res) => {
 
 
 
+const handleGetAllWeeklyEarnings = async (req, res) => {
+  try {
+    // Fetch all BVPoints documents, selecting only weeklyEarnings and userId fields
+    const allWeeklyEarnings = await BVPoints.find({}, 'userId weeklyEarnings').populate('userId', 'name email'); // Populate user details if needed
+
+    // Transform data
+    const formattedData = allWeeklyEarnings.map((entry) => ({
+      userId: entry.userId._id,
+      userName: entry.userId.name || 'N/A', 
+      userEmail: entry.userId.email || 'N/A',
+      weeklyEarnings: entry.weeklyEarnings.map((earning) => ({
+        week: earning.week.toISOString().split('T')[0], // Format date
+        matchedBV: earning.matchedBV,
+        payoutAmount: earning.payoutAmount,
+        paymentStatus: earning.paymentStatus,
+      })),
+    }));
+
+    res.status(200).json({ success: true, message: 'Weekly earnings data fetched successfully', data: formattedData });
+  } catch (error) {
+    console.error('Error fetching weekly earnings data:', error);
+    res.status(500).json({ success: false, message: 'Internal server error' });
+  }
+}
 
 
 
@@ -279,5 +303,6 @@ module.exports = {
   handleGetDashboardData,
   handleGetWeeklyPayoutsDetails,
   handleGetMonthlyPayoutsDetails,
-  handleUpdateWeeklyPayoutStatus
+  handleUpdateWeeklyPayoutStatus,
+  handleGetAllWeeklyEarnings
 };
