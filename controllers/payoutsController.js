@@ -22,7 +22,7 @@ const handleGetDashboardData = async (req, res) => {
     // Consider user as root or head & then find total number of users in left and right tree
     let leftTreeUsersCount = await countLeftChild(user);
     let rightTreeUsersCount = await countRightChild(user);
-    
+
     // Handle activeDate when it is null
     const activeDate = user.activeDate ? user.activeDate.toISOString().split('T')[0] : "Not active";
     let kycStatus;
@@ -93,7 +93,7 @@ const handleGetDashboardData = async (req, res) => {
       rightDirectBV: bvPoints.directBV.rightBV,
       total: bvPoints.directBV.leftBV + bvPoints.directBV.rightBV
     }
-    
+
     const totalDirectTeam = {
       leftDirectTeam: await calculateDirectLeftTeam(user, user.mySponsorId),
       rightDirectTeam: await calculateDirectRightTeam(user, user.mySponsorId)
@@ -113,7 +113,7 @@ const handleGetDashboardData = async (req, res) => {
       totalDirectBV,
       totalDirectTeam,
     });
-  
+
   } catch (error) {
     console.error("Error fetching dashboard data:", error);
     res.status(500).json({ message: "Internal server error" });
@@ -122,14 +122,14 @@ const handleGetDashboardData = async (req, res) => {
 
 
 
-async function calculateDirectLeftTeam(rootuser, rcvdSponsorId){
-  if(!rootuser || !rootuser.binaryPosition || !rootuser.binaryPosition.left) return 0;
+async function calculateDirectLeftTeam(rootuser, rcvdSponsorId) {
+  if (!rootuser || !rootuser.binaryPosition || !rootuser.binaryPosition.left) return 0;
 
   let count = 0;
-  if(rootuser.binaryPosition.left){
+  if (rootuser.binaryPosition.left) {
     const leftUser = await User.findById(rootuser.binaryPosition.left);
-    if(leftUser.sponsorId === rcvdSponsorId) { 
-      count += 1; 
+    if (leftUser.sponsorId === rcvdSponsorId) {
+      count += 1;
     }
     count += await calculateDirectLeftTeam(leftUser, rcvdSponsorId) + await calculateDirectRightTeam(leftUser, rcvdSponsorId);
   }
@@ -139,18 +139,18 @@ async function calculateDirectLeftTeam(rootuser, rcvdSponsorId){
 
 
 
-async function calculateDirectRightTeam(rootuser, rcvdSponsorId){
-  if(!rootuser || !rootuser.binaryPosition || !rootuser.binaryPosition.right) return 0;
-  
+async function calculateDirectRightTeam(rootuser, rcvdSponsorId) {
+  if (!rootuser || !rootuser.binaryPosition || !rootuser.binaryPosition.right) return 0;
+
   let count = 0;
-  if(rootuser.binaryPosition.right){
+  if (rootuser.binaryPosition.right) {
     const rightUser = await User.findById(rootuser.binaryPosition.right);
-    if(rightUser.sponsorId === rcvdSponsorId) { 
-      count += 1; 
+    if (rightUser.sponsorId === rcvdSponsorId) {
+      count += 1;
     }
     count += await calculateDirectLeftTeam(rightUser, rcvdSponsorId) + await calculateDirectRightTeam(rightUser, rcvdSponsorId);
   }
-  
+
   return count;
 }
 
@@ -218,7 +218,7 @@ const handleGetMonthlyPayoutsDetails = async (req, res) => {
     // Check if the user has any weekly earnings
     if (bvPoints.monthlyEarnings.length === 0) { return res.status(404).json({ message: "No monthly earnings data available." }); }
 
-    
+
     // Format and return the response
     res.status(200).json({
       userId: bvPoints.userId,
@@ -241,32 +241,32 @@ const handleUpdateWeeklyPayoutStatus = async (req, res) => {
     // Find the BVPoints document for the given userId
     const bvPoints = await BVPoints.findOne({ userId: userId });
     if (!bvPoints) { return res.status(404).json({ message: "BV points not found. No Earning found for this user." }); }
-    
+
     // bvPoints is an object, extract weeklyEarnings Array from bvPoints
     const weeklyEarnings = bvPoints.weeklyEarnings;
 
     // Iterate over each weekly earnings
     let i;
-    for(i = 0; i < weeklyEarnings.length; i++){
+    for (i = 0; i < weeklyEarnings.length; i++) {
       const earning = weeklyEarnings[i];
-      if(earning._id.toString() === payoutId){
-        if(earning.paymentStatus === 'Paid') {
-          return res.status(400).json({ message: "Payout for this week has already been Paid." });  
+      if (earning._id.toString() === payoutId) {
+        if (earning.paymentStatus === 'Paid') {
+          return res.status(400).json({ message: "Payout for this week has already been Paid." });
         }
         // Mark the payout as Paid
         earning.paymentStatus = 'Paid';
         break;
       }
     }
-    if(i === weeklyEarnings.length){
+    if (i === weeklyEarnings.length) {
       return res.status(404).json({ message: "Payout not found for the given payoutId." });
     }
 
     await bvPoints.save();
     res.status(200).json({ message: "Weekly payout updated successfully.", earnings: bvPoints.weeklyEarnings });
   } catch (e) {
-      console.error("Error updating weekly payout:", e.message);
-      res.status(500).json({ message: "Internal server error", error: e.message });
+    console.error("Error updating weekly payout:", e.message);
+    res.status(500).json({ message: "Internal server error", error: e.message });
   }
 };
 
@@ -275,8 +275,10 @@ const handleUpdateWeeklyPayoutStatus = async (req, res) => {
 // 5. Get all weekly earnings
 const handleGetAllWeeklyEarnings = async (req, res) => {
   try {
-    // Fetch all BVPoints documents, selecting only weeklyEarnings and userId fields
-    const allWeeklyEarnings = await BVPoints.find({}, 'userId weeklyEarnings').populate('userId', 'name email'); // Populate user details if needed
+    const allWeeklyEarnings = await BVPoints.find(
+      { weeklyEarnings: { $ne: [] } }, // Exclude documents with empty weeklyEarnings
+      'userId weeklyEarnings'
+    ).populate('userId', 'name email');
 
     // Transform data
     const formattedData = allWeeklyEarnings.map((entry) => ({
@@ -285,7 +287,7 @@ const handleGetAllWeeklyEarnings = async (req, res) => {
       userEmail: entry.userId.email || 'N/A',
       weeklyEarnings: entry.weeklyEarnings.map((earning) => ({
         _id: earning._id,
-        week: earning.week.toISOString().split('T')[0], // Format date
+        week: earning.week.toISOString().split('T')[0], 
         matchedBV: earning.matchedBV,
         payoutAmount: earning.payoutAmount,
         paymentStatus: earning.paymentStatus,
@@ -306,15 +308,15 @@ const handleGetAllMonthlyEarnings = async (req, res) => {
     // Fetch all BVPoints documents, selecting only weeklyEarnings and userId fields
     const allMonthlyEarnings = await BVPoints.find({}, 'userId monthlyEarnings').populate('userId', 'name email'); // Populate user details if needed
     console.log('Printing: ', allMonthlyEarnings);
-    
-    if(!allMonthlyEarnings) {
-      return res.status(200).json({ message: 'No monthly earnings data found.' });  
+
+    if (!allMonthlyEarnings) {
+      return res.status(200).json({ message: 'No monthly earnings data found.' });
     }
 
     // Transform data
     const formattedData = allMonthlyEarnings.map((entry) => ({
       userId: entry.userId._id,
-      userName: entry.userId.name || 'N/A', 
+      userName: entry.userId.name || 'N/A',
       userEmail: entry.userId.email || 'N/A',
       monthlyEarnings: entry.monthlyEarnings.map((earning) => ({
         month: earning.month.toISOString().split('T')[0], // Format date
