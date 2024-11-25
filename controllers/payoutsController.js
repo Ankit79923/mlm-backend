@@ -306,10 +306,11 @@ const handleGetAllWeeklyEarnings = async (req, res) => {
 const handleGetAllMonthlyEarnings = async (req, res) => {
   try {
     // Fetch all BVPoints documents, selecting only weeklyEarnings and userId fields
-    const allMonthlyEarnings = await BVPoints.find({}, 'userId monthlyEarnings').populate('userId', 'name email'); // Populate user details if needed
-    console.log('Printing: ', allMonthlyEarnings);
+    const allMonthlyEarnings = await BVPoints.find({ monthlyEarnings: { $ne: [] } }, 'userId monthlyEarnings').populate('userId', 'name email'); // Populate user details
 
-    if (!allMonthlyEarnings) {
+    // console.log('Printing: ', allMonthlyEarnings);
+    
+    if (allMonthlyEarnings.length == 0) {
       return res.status(200).json({ message: 'No monthly earnings data found.' });
     }
 
