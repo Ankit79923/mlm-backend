@@ -149,11 +149,28 @@ const handleGetAllVerifiedKycUsers = async (req, res) => {
 }
 
 
+// 6. API to get KYC status
+const handleGetKYCStatus = async (req, res) => {
+  try {
+    // Extract sponsorId from the request parameters
+    const { mySponsorId } = req.params; 
+
+    // Search for KYC details
+    const kyc = await KYC.findOne({ 'userDetails.mySponsorId': mySponsorId }); 
+    if (!kyc) { return res.json({ kycStatus: 'not_submitted'}); }
+
+    return res.status(200).json( { kycStatus: kyc.kycApproved} );
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json( {message: 'Server error', error: error.message});
+  }
+}
 
 module.exports = {
   handleSubmitKycDetails,
   handleGetAllNonVerifiedKycUsers,
   handleVerifyKYCDetails,
   handleRejectKYCDetails,
-  handleGetAllVerifiedKycUsers
+  handleGetAllVerifiedKycUsers,
+  handleGetKYCStatus
 }

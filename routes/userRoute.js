@@ -6,7 +6,7 @@ const { generateToken, verifyTokenMiddleware, isAdminMiddleware } = require('../
 const { handleViewProducts, handleGetProductById, handleAddProductsToCart, handleAddProductToWishlist, handleAddProductToCart, handleGetMyOrders } = require('../controllers/productController');
 const { handleGetSponsorChildrens, handleExtremeLeft, handleExtremeRight, handleGetAllReferrals, handleSearchSpecificUser } = require('../controllers/authController');
 const { handleGetDashboardData } = require('../controllers/payoutsController');
-const { handleSubmitKycDetails } = require('../controllers/kycController');
+const { handleSubmitKycDetails, handleGetKYCStatus } = require('../controllers/kycController');
 const { handleGetAllFranchises } = require('../controllers/franchiseController');
 
 
@@ -37,6 +37,7 @@ router.post('/submitKycDetails', upload.fields([
   ]), 
   handleSubmitKycDetails
 );
+router.get('/kyc-status/:mySponsorId', handleGetKYCStatus);
 
 
 
