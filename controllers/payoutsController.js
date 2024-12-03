@@ -273,33 +273,67 @@ const handleUpdateWeeklyPayoutStatus = async (req, res) => {
 
 
 // 5. Get all weekly earnings
+// const handleGetAllWeeklyEarnings = async (req, res) => {
+//   try {
+//     const allWeeklyEarnings = await BVPoints.find(
+//       { weeklyEarnings: { $ne: [] } }, // Exclude documents with empty weeklyEarnings
+//       'userId weeklyEarnings'
+//     ).populate('userId', 'name email');
+
+//     // Transform data
+//     const formattedData = allWeeklyEarnings.map((entry) => ({
+//       userId: entry.userId._id,
+//       userName: entry.userId.name || 'N/A', 
+//       userEmail: entry.userId.email || 'N/A',
+//       weeklyEarnings: entry.weeklyEarnings.map((earning) => ({
+//         _id: earning._id,
+//         week: earning.week.toISOString().split('T')[0], 
+//         matchedBV: earning.matchedBV,
+//         payoutAmount: earning.payoutAmount,
+//         paymentStatus: earning.paymentStatus,
+//       })),
+//     }));
+
+//     res.status(200).json({ success: true, message: 'Weekly earnings data fetched successfully', data: formattedData });
+//   } catch (error) {
+//     console.error('Error fetching weekly earnings data:', error);
+//     res.status(500).json({ success: false, message: 'Internal server error' });
+//   }
+// }
 const handleGetAllWeeklyEarnings = async (req, res) => {
   try {
     const allWeeklyEarnings = await BVPoints.find(
-      { weeklyEarnings: { $ne: [] } }, // Exclude documents with empty weeklyEarnings
+      { "weeklyEarnings.payoutAmount": { $gt: 0 } }, // Only include documents with non-zero payoutAmount
       'userId weeklyEarnings'
     ).populate('userId', 'name email');
 
     // Transform data
-    const formattedData = allWeeklyEarnings.map((entry) => ({
-      userId: entry.userId._id,
-      userName: entry.userId.name || 'N/A', 
-      userEmail: entry.userId.email || 'N/A',
-      weeklyEarnings: entry.weeklyEarnings.map((earning) => ({
-        _id: earning._id,
-        week: earning.week.toISOString().split('T')[0], 
-        matchedBV: earning.matchedBV,
-        payoutAmount: earning.payoutAmount,
-        paymentStatus: earning.paymentStatus,
-      })),
-    }));
+    const formattedData = allWeeklyEarnings.map((entry) => {
+      const filteredEarnings = entry.weeklyEarnings.filter(
+        (earning) => earning.payoutAmount > 0 // Exclude entries with payoutAmount of 0
+      );
 
-    res.status(200).json({ success: true, message: 'Weekly earnings data fetched successfully', data: formattedData });
+      return {
+        userId: entry.userId._id,
+        userName: entry.userId.name || 'N/A', 
+        userEmail: entry.userId.email || 'N/A',
+        weeklyEarnings: filteredEarnings.map((earning) => ({
+          _id: earning._id,
+          week: earning.week.toISOString().split('T')[0],
+          matchedBV: earning.matchedBV,
+          payoutAmount: earning.payoutAmount,
+          paymentStatus: earning.paymentStatus,
+        })),
+      };
+    });
+
+    res.status(200).json({ success: true, message: 'Filtered weekly earnings data fetched successfully', data: formattedData });
   } catch (error) {
-    console.error('Error fetching weekly earnings data:', error);
+    console.error('Error fetching filtered weekly earnings data:', error);
     res.status(500).json({ success: false, message: 'Internal server error' });
   }
-}
+};
+
 
 
 // 5. Get all monthly earnings
