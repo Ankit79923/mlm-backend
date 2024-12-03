@@ -417,8 +417,6 @@ async function handleAssignProductsToUsersByAdmin(req, res) {
         await addPersonalBVpoints(user, totalBVPoints);
         await addBvPointsToAncestors(user, totalBVPoints);
 
-        
-        
 
         // Invalidate the cached products data
         await client.del('product:allProducts');
