@@ -680,7 +680,7 @@ const handleGetAllOrdersCreatedByFranchise = async (req, res) => {
             return res.status(400).json({ message: 'Please provide franchiseId.' });
         }
 
-        const franchiseOrders = await UserOrder.find({ 'franchiseDetails.franchiseId': franchiseId });
+        const franchiseOrders = await UserOrder.find({ 'franchiseDetails.franchiseId': franchiseId }).populate('userDetails.user', 'mySponsorId name email');
         return res.status(200).json({ franchiseOrders });
     }catch (e) {
         console.error('Error fetching orders:', e);
