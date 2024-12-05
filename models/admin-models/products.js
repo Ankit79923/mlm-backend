@@ -36,6 +36,22 @@ const productSchema = new mongoose.Schema({
         type: Number,
         required: true
     },
+    ingredients: {
+        type: String,
+        required: true
+    },
+    product_benefits: {
+        type: String,
+        required: true
+    },
+    how_to_use: {
+        type: String,
+        required: true
+    },
+    disclaimer: {
+        type: String,
+        required: true
+    },
     createdAt: {
         type: Date,
         default: Date.now
