@@ -16,6 +16,7 @@ const productSchema = new mongoose.Schema({
         type: Number,
         required: true
     },
+   
     bvPoints: {
         type: Number,
         required: true

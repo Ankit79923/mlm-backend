@@ -24,7 +24,8 @@ const handleGetDashboardData = async (req, res) => {
     let rightTreeUsersCount = await countRightChild(user);
 
     // Handle activeDate when it is null
-    const activeDate = user.activeDate ? user.activeDate.toISOString().split('T')[0] : "Not active";
+    // const activeDate = user.activeDate ? user.activeDate.toISOString().split('T')[0] : "Not active";
+    const activeDate = user.isActive ? "Active" : "Not active";
     let kycStatus;
 
     // Fetch KYC status from the KYC document for the given userId
