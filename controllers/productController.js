@@ -14,8 +14,8 @@ async function handleAddProduct(req, res) {
         console.log('Inside function');
         console.log(req.body);
         
-        const { name, category, price, bvPoints, description, stock, ingredients, product_benefits, how_to_use, disclaimer } = req.body;
-        if(!name || !category || !price  || !bvPoints || !description || !stock || !ingredients || !product_benefits || !how_to_use || !disclaimer) {
+        const { name, category, price, mrp_price, bvPoints, description, stock, ingredients, product_benefits, how_to_use, disclaimer } = req.body;
+        if(!name || !category || !price || !mrp_price || !bvPoints || !description || !stock || !ingredients || !product_benefits || !how_to_use || !disclaimer) {
             return res.status(400).json({ message: 'All fields are required' });
         }
 
@@ -48,7 +48,7 @@ async function handleAddProduct(req, res) {
             ingredients,
             product_benefits,
             how_to_use,
-            disclaimer
+            disclaimer,mrp_price
         });
         
         // Invalidate the cached products data
