@@ -38,8 +38,8 @@ async function handleRegisterFirstUser(req, res) {
 
             // First user registration (admin/root user)
             let generatedSponsorId = await generateUniqueSponsorID();
-            const leftRefferalLink = `${process.env.DOMAIN_URL}/signupleft/${generatedSponsorId}`;
-            const rightRefferalLink = `${process.env.DOMAIN_URL}/signupright/${generatedSponsorId}`;
+            const leftRefferalLink = `https://myudbhab.in/signupleft/${generatedSponsorId}`;
+            const rightRefferalLink = `https://myudbhab.in/signupright/${generatedSponsorId}`;
     
             const newUser = await User.create({
                 sponsorId: generatedSponsorId,
@@ -130,8 +130,8 @@ async function handleRegisterUser(req, res) {
 
         // Generate a unique mySponsorId
         let generatedSponsorId = await generateUniqueSponsorID();
-        const leftRefferalLink = `${process.env.DOMAIN_URL}/signupleft/${generatedSponsorId}`;
-        const rightRefferalLink = `${process.env.DOMAIN_URL}/signupright/${generatedSponsorId}`;
+        const leftRefferalLink = `https://myudbhab.in/signupleft/${generatedSponsorId}`;
+        const rightRefferalLink = `https://myudbhab.in/signupright/${generatedSponsorId}`;
 
         // Create new user
         const newUser = await User.create({
@@ -222,8 +222,8 @@ async function handleRegisterUsingLeftLink(req, res) {
 
         // Generate a unique mySponsorId
         let generatedSponsorId = await generateUniqueSponsorID();
-        const leftRefferalLink = `${process.env.DOMAIN_URL}/signupleft/${generatedSponsorId}`;
-        const rightRefferalLink = `${process.env.DOMAIN_URL}/signupright/${generatedSponsorId}`;
+        const leftRefferalLink = `https://myudbhab.in/signupleft/${generatedSponsorId}`;
+        const rightRefferalLink = `https://myudbhab.in/signupright/${generatedSponsorId}`;
 
         // Create new user
         const newUser = await User.create({
@@ -312,8 +312,8 @@ async function handleRegisterUsingRightLink(req, res) {
         
         // Generate a unique mySponsorId
         let generatedSponsorId = await generateUniqueSponsorID();
-        const leftRefferalLink = `${process.env.DOMAIN_URL}/signupleft/${generatedSponsorId}`;
-        const rightRefferalLink = `${process.env.DOMAIN_URL}/signupright/${generatedSponsorId}`;
+        const leftRefferalLink = `https://myudbhab.in/signupleft/${generatedSponsorId}`;
+        const rightRefferalLink = `https://myudbhab.in/signupright/${generatedSponsorId}`;
 
         // Create new user
         const newUser = await User.create({
