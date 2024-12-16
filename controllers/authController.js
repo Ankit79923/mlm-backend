@@ -441,6 +441,7 @@ async function buildTree(user, level = 1) {
         _id: user._id,
         value: user.name, 
         mySponsorId: user.mySponsorId,
+        isActive: user.isActive,
         leftChild: null,
         rightChild: null
     };
