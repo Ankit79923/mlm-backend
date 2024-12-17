@@ -13,7 +13,7 @@ const UserOrder = require('../models/user-models/userOrders');
 // 1. Create new Franchise - only by admin
 const handleCreateFranchise = async (req, res) => {
     try {
-        const { franchiseName, email, password, contactInfo } = req.body;
+        const { franchiseName, email, password, contactInfo, address, state, district, pincode } = req.body;
 
         // Check if the franchise email already exists
         const existingFranchise = await Franchise.findOne({ email });
@@ -33,6 +33,10 @@ const handleCreateFranchise = async (req, res) => {
             email,
             password: password, // Store hashed password
             contactInfo,
+            address,
+            state,
+            district,
+            pincode
         });
 
         return res.status(201).json({ message: 'Franchise created successfully', franchiseId: newFranchise.franchiseId });
