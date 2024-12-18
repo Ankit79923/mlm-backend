@@ -66,7 +66,11 @@ const userOrderSchema = new mongoose.Schema({
     type: String,
     enum: ['Admin', 'Franchise'],
     required: true
-  }
+  },
+  createdAt: {
+        type: Date,
+        default: Date.now
+    }
 });
 
 module.exports = mongoose.model('UserOrder', userOrderSchema);

@@ -7,6 +7,7 @@ const { generateToken } = require('../middlewares/jwt');
 const client = require('../config/redis');
 const FranchiseOrder = require('../models/franchise-models/franchiseOrders');
 const UserOrder = require('../models/user-models/userOrders');
+// const userOrders = require('../models/user-models/userOrders');
 // const { default: orders } = require('razorpay/dist/types/orders');
 // const Razorpay = require('razorpay');
 
@@ -321,6 +322,7 @@ const handleGetFranchiesInventory = async (req, res) => {
 // 4. Get all Dashboard data on Franchise
 
 
+
 const handleGetFranchiseDashboardData = async (req, res) => {
     try {
         const {franchiseId} = req.params;
@@ -346,7 +348,7 @@ const handleGetFranchiseDashboardData = async (req, res) => {
         // Calculate Monthly Sales
         const currentMonth = new Date().getMonth();
         const currentYear = new Date().getFullYear();
-        const monthlyOrders = await FranchiseOrder.find({
+        const monthlyOrders = await UserOrder.find({
             'franchiseDetails.franchiseId': franchiseId,
             'orderDetails.createdAt': {
                 $gte: new Date(currentYear, currentMonth, 1),
@@ -358,7 +360,7 @@ const handleGetFranchiseDashboardData = async (req, res) => {
 
         // Calculate total sales
 
-        const totalSales = await FranchiseOrder.aggregate([
+        const totalSales = await UserOrder.aggregate([
             {$match: {'franchiseDetails.franchiseId': franchiseId}},
             {$group: {_id: null, totalAmount: {$sum: "$orderDetails.totalAmount"}}}
         ]);
@@ -367,18 +369,37 @@ const handleGetFranchiseDashboardData = async (req, res) => {
 
         // Calculate available stocks
 
-        const availableStocksValue = await inventory.products.reduce(async(total, item) => {
-            const product = await Product.findById(item.productId);
-            return total + (product.price * item.quantity);
-        }, 0);
+        // const availableStocksValue = await inventory.products.reduce(async(total, item) => {
+        //     const product = await Product.findById(item.productId);
+        //     return total + (product.price * item.quantity);
+            
+        // }, 0);
+        // Calulate available stocks
+
+        const calculateAvailableStocks = async (inventory) => {
+            let totalValue = 0;
+        
+            for (const item of inventory.products) {
+                const product = await Product.findById(item.productId);
+                if (product) {
+                    totalValue += product.price * item.quantity;
+                }
+            }
+        
+            return totalValue; // Return after the loop completes
+        };
+        const availableStocksValue = await calculateAvailableStocks(inventory);
+        
 
         // Return the dashboard data
 
         return res.status(200).json({
             totalMonthlySales,
             totalSalesAmount,
-            availableStocksValue,
-            inventory: inventory.products
+            availableStocksValue
+            
+            
+            // inventory: inventory.products
         });
     } catch (error) {
         console.error('Error fetching franchise dashboard data:', error);
