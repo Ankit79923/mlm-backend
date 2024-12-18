@@ -7,6 +7,8 @@ const { generateToken } = require('../middlewares/jwt');
 const client = require('../config/redis');
 const FranchiseOrder = require('../models/franchise-models/franchiseOrders');
 const UserOrder = require('../models/user-models/userOrders');
+// const { default: orders } = require('razorpay/dist/types/orders');
+// const Razorpay = require('razorpay');
 
 
 
@@ -312,8 +314,73 @@ const handleGetFranchiesInventory = async (req, res) => {
 
 
 
+// 4. Get all Dashboard data on Franchise
 
 
+const handleGetFranchiseDashboardData = async (req, res) => {
+    try {
+        const {franchiseId} = req.params;
+
+        if(!franchiseId) {
+            return res.status(404).json({message: "Please provide a Frachise ID."});
+        }
+
+        // Find the franchise by franchise ID
+
+        const franchise = await Franchise.findOne({franchiseId});
+        if(!franchise) {
+            return res.status(404).json({message: "Incorrect Franchise ID"});
+        }
+
+        //Find the inventory for the franchise
+
+        let inventory = await Inventory.findOne({franchiseId: franchise._id});
+        if(!inventory) {
+            return res.status(404).json({message: "Inventory not found"});
+        }
+
+        // Calculate Monthly Sales
+        const currentMonth = new Date().getMonth();
+        const currentYear = new Date().getFullYear();
+        const monthlyOrders = await FranchiseOrder.find({
+            'franchiseDetails.franchiseId': franchiseId,
+            'orderDetails.createdAt': {
+                $gte: new Date(currentYear, currentMonth, 1),
+                $lt: new Date(currentYear, currentMonth + 1, 1)
+            }
+        });
+
+        const totalMonthlySales = monthlyOrders.reduce((total, order) => total + order.orderDetails.totalAmount, 0);
+
+        // Calculate total sales
+
+        const totalSales = await FranchiseOrder.aggregate([
+            {$match: {'franchiseDetails.franchiseId': franchiseId}},
+            {$group: {_id: null, totalAmount: {$sum: "$orderDetails.totalAmount"}}}
+        ]);
+
+        const totalSalesAmount = totalSales.length > 0 ? totalSales[0].totalAmount : 0;
+
+        // Calculate available stocks
+
+        const availableStocksValue = await inventory.products.reduce(async(total, item) => {
+            const product = await Product.findById(item.productId);
+            return total + (product.price * item.quantity);
+        }, 0);
+
+        // Return the dashboard data
+
+        return res.status(200).json({
+            totalMonthlySales,
+            totalSalesAmount,
+            availableStocksValue,
+            inventory: inventory.products
+        });
+    } catch (error) {
+        console.error('Error fetching franchise dashboard data:', error);
+        return res.status(500).json({message: 'Internal server error', error: error.message});        
+    }
+}
 
 
 // 5. Remove Product from Franchise Inventory - only by admin
@@ -700,7 +767,7 @@ module.exports = {
     handleGetAllUsers,
     handleGetFranchiseOrders,
     handleGetAllOrdersCreatedByFranchise,
-
+    handleGetFranchiseDashboardData,
     addPersonalBVpoints,
     addBvPointsToAncestors
 }
