@@ -90,13 +90,14 @@ const handleGetDashboardData = async (req, res) => {
 
     const myTotalBV = bvPoints.totalBV.leftBV + bvPoints.totalBV.rightBV;
 
-    const directSalesBonus = 0.1 * myTotalBV;
-
+    
     const totalDirectBV = {
       leftDirectBV: bvPoints.directBV.leftBV,
       rightDirectBV: bvPoints.directBV.rightBV,
       total: bvPoints.directBV.leftBV + bvPoints.directBV.rightBV
     }
+
+    const directSalesBonus = 0.1 * totalDirectBV.total;
 
     const totalDirectTeam = {
       leftDirectTeam: await calculateDirectLeftTeam(user, user.mySponsorId),
