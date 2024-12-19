@@ -18,7 +18,8 @@ const calculateWeekelyPayout = async (req, res) => {
 
       // Calculate matched BV & payout
       const matchedBV = Math.min(leftBV, rightBV);
-      const payoutAmount = matchedBV * 0.1;
+      const directBVamount = matchedBV * 0.1;
+      const payoutAmount = directBVamount + totalBV;
 
       // Create a new weekly earning entry
       const newEarning = {
@@ -58,7 +59,8 @@ const calculateMonthlyPayout = async function (req, res) {
 
         // Calculate Monthly payoutAmount
         const matchedBV = Math.min(leftBV, rightBV);
-        const payoutAmount = matchedBV * 0.1;
+        const directBVamount = matchedBV * 0.1;
+        const payoutAmount = directBVamount + totalBV;
 
         // Create & save new monthly earning entry
         const newMonthlyEarning = { month: todayDate, payoutAmount };
