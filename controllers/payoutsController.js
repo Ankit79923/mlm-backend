@@ -61,7 +61,8 @@ const handleGetDashboardData = async (req, res) => {
         totalDirectTeam: {
           leftDirectTeam: 0,
           rightDirectTeam: 0
-        }
+        },
+        directSalesBonus
       });
     }
 
@@ -89,6 +90,8 @@ const handleGetDashboardData = async (req, res) => {
 
     const myTotalBV = bvPoints.totalBV.leftBV + bvPoints.totalBV.rightBV;
 
+    const directSalesBonus = 0.1 * myTotalBV;
+
     const totalDirectBV = {
       leftDirectBV: bvPoints.directBV.leftBV,
       rightDirectBV: bvPoints.directBV.rightBV,
@@ -113,6 +116,7 @@ const handleGetDashboardData = async (req, res) => {
       myTotalBV,
       totalDirectBV,
       totalDirectTeam,
+      directSalesBonus,
     });
 
   } catch (error) {
