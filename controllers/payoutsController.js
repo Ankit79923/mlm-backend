@@ -306,7 +306,7 @@ const handleGetAllWeeklyEarnings = async (req, res) => {
     const allWeeklyEarnings = await BVPoints.find(
       { "weeklyEarnings.payoutAmount": { $gt: 0 } }, // Only include documents with non-zero payoutAmount
       'userId weeklyEarnings'
-    ).populate('userId', 'name email');
+    ).populate('userId', ' mySponsorId name email');
 
     // Transform data
     const formattedData = allWeeklyEarnings.map((entry) => {
@@ -315,7 +315,7 @@ const handleGetAllWeeklyEarnings = async (req, res) => {
       );
 
       return {
-        userId: entry.userId._id,
+        userId: entry.userId.mySponsorId,
         userName: entry.userId.name || 'N/A', 
         userEmail: entry.userId.email || 'N/A',
         weeklyEarnings: filteredEarnings.map((earning) => ({
