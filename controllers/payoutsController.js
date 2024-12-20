@@ -62,9 +62,7 @@ const handleGetDashboardData = async (req, res) => {
         totalDirectTeam: {
           leftDirectTeam: 0,
           rightDirectTeam: 0
-        },
-        directSalesBonus,
-        teamSalesBonus
+        }
       });
     }
 
@@ -99,10 +97,6 @@ const handleGetDashboardData = async (req, res) => {
       total: bvPoints.directBV.leftBV + bvPoints.directBV.rightBV
     }
 
-    const directSalesBonus = 0.1 * totalDirectBV.total;
-
-    const teamSalesBonus = 0.1 * Math.min(leftBV, rightBV);
-
     const totalDirectTeam = {
       leftDirectTeam: await calculateDirectLeftTeam(user, user.mySponsorId),
       rightDirectTeam: await calculateDirectRightTeam(user, user.mySponsorId)
@@ -121,8 +115,6 @@ const handleGetDashboardData = async (req, res) => {
       myTotalBV,
       totalDirectBV,
       totalDirectTeam,
-      directSalesBonus,
-      teamSalesBonus,
     });
 
   } catch (error) {
