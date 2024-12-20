@@ -1,4 +1,5 @@
 
+
 const User = require("../models/user-models/users");
 const KYC = require("../models/user-models/kyc");
 const BVPoints = require("../models/user-models/bvPoints");
@@ -19,6 +20,7 @@ const handleGetDashboardData = async (req, res) => {
     let weeklyEarning = 0;
     let monthlyEarning = 0;
     let lifetimeEarning = 0;
+   
 
     // Consider user as root or head & then find total number of users in left and right tree
     let leftTreeUsersCount = await countLeftChild(user);
@@ -62,7 +64,10 @@ const handleGetDashboardData = async (req, res) => {
         totalDirectTeam: {
           leftDirectTeam: 0,
           rightDirectTeam: 0
-        }
+        },
+        
+        
+
       });
     }
 
@@ -89,12 +94,12 @@ const handleGetDashboardData = async (req, res) => {
     }
 
     const myTotalBV = bvPoints.totalBV.leftBV + bvPoints.totalBV.rightBV;
-
+    const directSalesBouns = bvPoints.weeklyEarnings.directSalesBouns;
     
     const totalDirectBV = {
       leftDirectBV: bvPoints.directBV.leftBV,
       rightDirectBV: bvPoints.directBV.rightBV,
-      total: bvPoints.directBV.leftBV + bvPoints.directBV.rightBV
+      total: bvPoints.directBV.leftBV + bvPoints.directBV.rightBV || 0
     }
 
     const totalDirectTeam = {
@@ -115,6 +120,7 @@ const handleGetDashboardData = async (req, res) => {
       myTotalBV,
       totalDirectBV,
       totalDirectTeam,
+      directSalesBouns
     });
 
   } catch (error) {

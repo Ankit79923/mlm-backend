@@ -64,7 +64,7 @@ const userOrderSchema = new mongoose.Schema({
   ],
   deliveryMode: {
     type: String,
-    enum: ['Admin', 'Franchise'],
+    enum: ['Head Office', 'Pickup Point'],
     required: true
   },
   createdAt: {

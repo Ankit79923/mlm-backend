@@ -15,11 +15,14 @@ const calculateWeekelyPayout = async (req, res) => {
     // Iterate through each user and calculate payout based on their BV points
     for (const user of users) {
       const { leftBV, rightBV } = user.currentWeekBV;
+     
 
       // Calculate matched BV & payout
       const matchedBV = Math.min(leftBV, rightBV);
       const payoutAmount = matchedBV * 0.1;
-
+      
+      
+      
       // Create a new weekly earning entry
       const newEarning = {
         week: todayDate,
@@ -58,8 +61,7 @@ const calculateMonthlyPayout = async function (req, res) {
 
         // Calculate Monthly payoutAmount
         const matchedBV = Math.min(leftBV, rightBV);
-        const totalBV = leftBV + rightBV; // Calculate total BV
-        const payoutAmount = matchedBV * 0.1 + totalBV * 0.1;
+        const payoutAmount = matchedBV * 0.1;
 
         // Create & save new monthly earning entry
         const newMonthlyEarning = { month: todayDate, payoutAmount };

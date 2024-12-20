@@ -471,7 +471,7 @@ async function createUserOrder(user, totalPrice, totalBvPoints, products) {
                 totalBVPoints: totalBvPoints
             },
             products: productDetails,
-            deliveryMode: 'Admin'
+            deliveryMode: 'Head Office'
         });
 
         await order.save();
@@ -507,7 +507,7 @@ const generateUniqueUserOrderNumber = async () => {
 
 const handleGetUserOrdersDeliveredByAdmin = async (req, res) => {
     try{
-        const orders = await UserOrder.find({ "deliveryMode": "Admin" }).sort({ "orderDetails.orderNumber": -1 });
+        const orders = await UserOrder.find({ "deliveryMode": "Head Office" }).sort({ "orderDetails.orderNumber": -1 });
 
         if (!orders || orders.length === 0) {
             return res.status(200).json({ message: 'No orders found', orders });

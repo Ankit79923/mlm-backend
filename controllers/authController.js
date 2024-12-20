@@ -97,7 +97,7 @@ async function handleRegisterUser(req, res) {
         } = req.body;
 
         // Check all parameters are recieved or not 
-        if (!sponsorId || !registrationType || !gender || !name || !dob || !mobileNumber || !whatsappNumber || !email || !state || !district || !pincode || !address || !password) {
+        if (!sponsorId || !registrationType || !gender || !name || !dob || !mobileNumber || !email || !state || !district || !pincode || !address || !password) {
             return res.status(400).json({ message: 'Please provide all required fields' });
         }
 
@@ -114,8 +114,13 @@ async function handleRegisterUser(req, res) {
         if (phoneFound) { return res.status(404).json({ message: 'Phone number is already registered' }); }
 
         // Check if Whatsapp number is already registered
+        
+        if(whatsappNumber !== undefined ) {
+            if(whatsappNumber !== ""){
         let whatsappNumberFound = await User.findOne({ whatsappNumber: whatsappNumber });
         if (whatsappNumberFound) { return res.status(404).json({ message: 'Whatsapp number is already registered' }); }
+            }
+        }
 
         // Check if GST number is already registered
         if(gstNumber !== undefined ) {
@@ -189,7 +194,7 @@ async function handleRegisterUsingLeftLink(req, res) {
         } = req.body;
 
         // Check all parameters are recieved or not 
-        if (!sponsorId || !registrationType || !gender || !name || !dob || !mobileNumber || !whatsappNumber || !email || !state || !district || !pincode || !address || !password) {
+        if (!sponsorId || !registrationType || !gender || !name || !dob || !mobileNumber || !email || !state || !district || !pincode || !address || !password) {
             return res.status(400).json({ message: 'Please provide all required fields' });
         }
 
@@ -204,11 +209,15 @@ async function handleRegisterUsingLeftLink(req, res) {
         // Check if Phone is already registered
         let phoneFound = await User.findOne({ mobileNumber: mobileNumber });
         if (phoneFound) { return res.status(404).json({ message: 'Phone number is already registered' }); }
-
         // Check if Whatsapp number is already registered
+        if(whatsappNumber !== undefined ) {
+            if(whatsappNumber !== ""){
         let whatsappNumberFound = await User.findOne({ whatsappNumber: whatsappNumber });
         if (whatsappNumberFound) { return res.status(404).json({ message: 'Whatsapp number is already registered' }); }
-
+            }
+        }
+        
+       
         // Check if GST number is already registered
         if(gstNumber !== undefined ) {
             if(gstNumber !== ""){
@@ -280,7 +289,7 @@ async function handleRegisterUsingRightLink(req, res) {
         } = req.body;
 
         // Check all parameters are recieved or not 
-        if (!sponsorId || !registrationType || !gender || !name || !dob || !mobileNumber || !whatsappNumber || !email || !state || !district || !pincode || !address || !password) {
+        if (!sponsorId || !registrationType || !gender || !name || !dob || !mobileNumber || !email || !state || !district || !pincode || !address || !password) {
             return res.status(400).json({ message: 'Please provide all required fields' });
         }
 
@@ -297,9 +306,12 @@ async function handleRegisterUsingRightLink(req, res) {
         if (phoneFound) { return res.status(404).json({ message: 'Phone number is already registered' }); }
 
         // Check if Whatsapp number is already registered
+        if(whatsappNumber !== undefined ) {
+            if(whatsappNumber !== ""){
         let whatsappNumberFound = await User.findOne({ whatsappNumber: whatsappNumber });
         if (whatsappNumberFound) { return res.status(404).json({ message: 'Whatsapp number is already registered' }); }
-
+            }
+        }
         // Check if GST number is already registered
         if(gstNumber !== undefined ) {
             if(gstNumber !== ""){

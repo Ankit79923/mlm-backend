@@ -346,17 +346,55 @@ const handleGetFranchiseDashboardData = async (req, res) => {
         }
 
         // Calculate Monthly Sales
-        const currentMonth = new Date().getMonth();
-        const currentYear = new Date().getFullYear();
-        const monthlyOrders = await UserOrder.find({
-            'franchiseDetails.franchiseId': franchiseId,
-            'orderDetails.createdAt': {
-                $gte: new Date(currentYear, currentMonth, 1),
-                $lt: new Date(currentYear, currentMonth + 1, 1)
-            }
-        });
+        // const currentMonth = new Date().getMonth();
+        // const currentYear = new Date().getFullYear();
+        // const monthlyOrders = await UserOrder.find({
+        //     'franchiseDetails.franchiseId': franchiseId,
+        //     'orderDetails.createdAt': {
+        //         $gte: new Date(currentYear, currentMonth, 1),
+        //         $lt: new Date(currentYear, currentMonth + 1, 1)
+        //     }
+        // });
 
-        const totalMonthlySales = monthlyOrders.reduce((total, order) => total + order.orderDetails.totalAmount, 0);
+        // const totalMonthlySales = monthlyOrders.reduce((total, order) => total + order.orderDetails.totalAmount, 0);
+        
+    // Get current date
+    const currentDate = new Date();
+    const startOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
+    const startOfNextMonth = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 1);
+
+    // Find orders created in the current month
+    const monthlyOrders = await UserOrder.find({
+      'franchiseDetails.franchiseId': franchiseId,
+      createdAt: {
+        $gte: startOfMonth,
+        $lt: startOfNextMonth,
+      },
+    });
+//monthly order 
+
+
+
+// Find orders created in the current month
+const monthlyOrdersProduct = await UserOrder.find({
+  'franchiseDetails.franchiseId': franchiseId,
+  createdAt: {
+    $gte: startOfMonth,
+    $lt: startOfNextMonth,
+  },
+});
+
+
+// Calculate total number of orders in the current month
+const totalOrdersInMonth = monthlyOrders.length;
+    // Calculate total monthly sales
+    const totalMonthlySales = monthlyOrders.reduce((total, order) => {
+      return total + (order.orderDetails?.totalAmount || 0);
+    }, 0);
+
+   
+    console.log("Total monthly sales:", totalMonthlySales);
+
 
         // Calculate total sales
 
@@ -367,14 +405,6 @@ const handleGetFranchiseDashboardData = async (req, res) => {
 
         const totalSalesAmount = totalSales.length > 0 ? totalSales[0].totalAmount : 0;
 
-        // Calculate available stocks
-
-        // const availableStocksValue = await inventory.products.reduce(async(total, item) => {
-        //     const product = await Product.findById(item.productId);
-        //     return total + (product.price * item.quantity);
-            
-        // }, 0);
-        // Calulate available stocks
 
         const calculateAvailableStocks = async (inventory) => {
             let totalValue = 0;
@@ -396,6 +426,7 @@ const handleGetFranchiseDashboardData = async (req, res) => {
         return res.status(200).json({
             totalMonthlySales,
             totalSalesAmount,
+            totalOrdersInMonth,
             availableStocksValue
             
             
@@ -691,7 +722,7 @@ async function createUserOrder(user, franchiseId, totalPrice, totalBvPoints, pro
                 totalBVPoints: totalBvPoints
             },
             products: productDetails,
-            deliveryMode: 'Franchise'
+            deliveryMode: 'Pickup Point'
         });
         
 
