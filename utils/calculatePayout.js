@@ -18,8 +18,7 @@ const calculateWeekelyPayout = async (req, res) => {
 
       // Calculate matched BV & payout
       const matchedBV = Math.min(leftBV, rightBV);
-      const totalBV = leftBV + rightBV; // Calculate total BV
-      const payoutAmount = matchedBV * 0.1 + totalBV * 0.1;
+      const payoutAmount = matchedBV * 0.1;
 
       // Create a new weekly earning entry
       const newEarning = {
