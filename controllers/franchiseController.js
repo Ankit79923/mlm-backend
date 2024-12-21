@@ -198,6 +198,7 @@ const saveOrderDetails = async (franchiseObjectId, franchiseId, products) => {
                     name: productFound.name,
                     quantity,
                     price,
+                    bvPoints,
                     totalAmount: price * quantity,
                 };
             })
@@ -713,6 +714,7 @@ async function createUserOrder(user, franchiseId, totalPrice, totalBvPoints, pro
                 productId: product.productId,
                 name: productData.name, // Get the product name from the retrieved data
                 quantity: product.quantity,
+                bvPoints : product.bvPoints,
                 price: productData.price, // Use the price from the product data
                 totalAmount: productData.price * product.quantity
             });

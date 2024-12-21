@@ -15,25 +15,32 @@ const calculateWeekelyPayout = async (req, res) => {
     // Iterate through each user and calculate payout based on their BV points
     for (const user of users) {
       const { leftBV, rightBV } = user.currentWeekBV;
-     
+      const {leftTeamBV, rightTeamBV} = user.totalBV;
 
+      
+      const matchedBonus = leftTeamBV + rightTeamBV;
+      const teamSalesBonus = matchedBonus * 0.1;
       // Calculate matched BV & payout
       const matchedBV = Math.min(leftBV, rightBV);
-      const payoutAmount = matchedBV * 0.1;
-      
-      
-      
+      const directSalesBonus = matchedBV * 0.1;
+      const payoutAmount = directSalesBonus + teamSalesBonus;
+      // Calculate weeklyBV
+      const weeklyBV = matchedBonus + matchedBV;
+
       // Create a new weekly earning entry
       const newEarning = {
         week: todayDate,
         matchedBV,
+        directSalesBonus,
+        teamSalesBonus,
+        weeklyBV,
         payoutAmount
       };
 
       // Update the user's weekly earnings and carry-forward BV
       user.weeklyEarnings.push(newEarning);
-      user.currentWeekBV.leftBV -= matchedBV;
-      user.currentWeekBV.rightBV -= matchedBV;
+      user.currentWeekBV.leftBV -= weeklyBV;
+      user.currentWeekBV.rightBV -= weeklyBV;
       await user.save();
     }
 
@@ -57,18 +64,26 @@ const calculateMonthlyPayout = async function (req, res) {
 
       // Iterate through each user and calculate MONTHLY payout
       for (const user of users) {
-        const { leftBV, rightBV } = user.currentMonthBV;
+      const { leftBV, rightBV } = user.currentMonthBV;
+      const {leftTeamBV, rightTeamBV} = user.totalBV;
 
+
+        const matchedBonus = Math.min(leftTeamBV, rightTeamBV);
+        const teamSalesBonus = Math.round(matchedBonus * 0.1);
         // Calculate Monthly payoutAmount
-        const matchedBV = Math.min(leftBV, rightBV);
-        const payoutAmount = matchedBV * 0.1;
+        const matchedBV = leftBV + rightBV; // Calculate total BV
+        const directSalesBonus = matchedBV * 0.1;
+        const payoutAmount = Math.round(directSalesBonus + teamSalesBonus);
+
+        // Calculate monthly BV
+        const monthlyBV = matchedBonus + matchedBV;
 
         // Create & save new monthly earning entry
         const newMonthlyEarning = { month: todayDate, payoutAmount };
         user.monthlyEarnings.push(newMonthlyEarning);
         // Reset user's currentMonthBV
-        user.currentMonthBV.leftBV -= matchedBV;
-        user.currentMonthBV.rightBV -= matchedBV;
+        user.currentMonthBV.leftBV -= monthlyBV;
+        user.currentMonthBV.rightBV -= monthlyBV;
         // Save doc
         await user.save();
       }

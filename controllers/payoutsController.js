@@ -1,5 +1,4 @@
 
-
 const User = require("../models/user-models/users");
 const KYC = require("../models/user-models/kyc");
 const BVPoints = require("../models/user-models/bvPoints");
@@ -7,8 +6,7 @@ const mongoose = require("mongoose");
 const { countLeftChild, countRightChild } = require('../utils/placeInBinaryTree');
 
 
-//1: get dashboard data
-
+// 1. Get Dashboard data
 const handleGetDashboardData = async (req, res) => {
   try {
     // Find user from received sponsorId
@@ -64,7 +62,9 @@ const handleGetDashboardData = async (req, res) => {
         totalDirectTeam: {
           leftDirectTeam: 0,
           rightDirectTeam: 0
-        }
+        },
+        directSalesBonus,
+        teamSalesBonus
       });
     }
 
@@ -90,13 +90,21 @@ const handleGetDashboardData = async (req, res) => {
       rightBV: bvPoints.totalBV.rightBV
     }
 
+    const teamSalesMatched = Math.min(bvPoints.totalBV.leftBV, bvPoints.totalBV.rightBV);
+    const teamSalesBonus = Math.round(teamSalesMatched * 0.1);
+
+
     const myTotalBV = bvPoints.totalBV.leftBV + bvPoints.totalBV.rightBV;
 
+    
     const totalDirectBV = {
       leftDirectBV: bvPoints.directBV.leftBV,
       rightDirectBV: bvPoints.directBV.rightBV,
       total: bvPoints.directBV.leftBV + bvPoints.directBV.rightBV
     }
+
+    const directSalesMatched = bvPoints.directBV.leftBV + bvPoints.directBV.rightBV;
+    const directSalesBonus = directSalesMatched * 0.1;
 
     const totalDirectTeam = {
       leftDirectTeam: await calculateDirectLeftTeam(user, user.mySponsorId),
@@ -116,6 +124,8 @@ const handleGetDashboardData = async (req, res) => {
       myTotalBV,
       totalDirectBV,
       totalDirectTeam,
+      directSalesBonus,
+      teamSalesBonus
     });
 
   } catch (error) {
@@ -160,7 +170,6 @@ async function calculateDirectRightTeam(rootuser, rcvdSponsorId) {
 
 
 
-
 // 2. Get weekly payout detaills
 const handleGetWeeklyPayoutsDetails = async (req, res) => {
   try {
@@ -190,6 +199,9 @@ const handleGetWeeklyPayoutsDetails = async (req, res) => {
       weeklyEarnings: bvPoints.weeklyEarnings.map((earning) => ({
         week: earning.week.toISOString().split("T")[0], // Formatting date to "YYYY-MM-DD"
         matchedBV: earning.matchedBV,
+        directSalesBonus: earning.directSalesBonus,
+        teamSalesBonus: earning.teamSalesBonus,
+        weeklyBV: earning.weeklyBV,
         payoutAmount: earning.payoutAmount,
         _id: earning._id,
         paymentStatus: earning.paymentStatus,
