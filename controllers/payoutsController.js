@@ -19,6 +19,8 @@ const handleGetDashboardData = async (req, res) => {
     let weeklyEarning = 0;
     let monthlyEarning = 0;
     let lifetimeEarning = 0;
+    let directSalesBonus = 0;
+    let teamSalesBonus = 0;
 
     // Consider user as root or head & then find total number of users in left and right tree
     let leftTreeUsersCount = await countLeftChild(user);
@@ -91,7 +93,7 @@ const handleGetDashboardData = async (req, res) => {
     }
 
     const teamSalesMatched = Math.min(bvPoints.totalBV.leftBV, bvPoints.totalBV.rightBV);
-    const teamSalesBonus = Math.round(teamSalesMatched * 0.1);
+    teamSalesBonus = Math.round(teamSalesMatched * 0.1);
 
 
     const myTotalBV = bvPoints.totalBV.leftBV + bvPoints.totalBV.rightBV;
@@ -104,7 +106,7 @@ const handleGetDashboardData = async (req, res) => {
     }
 
     const directSalesMatched = bvPoints.directBV.leftBV + bvPoints.directBV.rightBV;
-    const directSalesBonus = directSalesMatched * 0.1;
+    directSalesBonus = directSalesMatched * 0.1;
 
     const totalDirectTeam = {
       leftDirectTeam: await calculateDirectLeftTeam(user, user.mySponsorId),
