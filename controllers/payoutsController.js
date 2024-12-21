@@ -7,7 +7,8 @@ const mongoose = require("mongoose");
 const { countLeftChild, countRightChild } = require('../utils/placeInBinaryTree');
 
 
-// 1. Get Dashboard data
+//1: get dashboard data
+
 const handleGetDashboardData = async (req, res) => {
   try {
     // Find user from received sponsorId
@@ -20,7 +21,6 @@ const handleGetDashboardData = async (req, res) => {
     let weeklyEarning = 0;
     let monthlyEarning = 0;
     let lifetimeEarning = 0;
-   
 
     // Consider user as root or head & then find total number of users in left and right tree
     let leftTreeUsersCount = await countLeftChild(user);
@@ -64,10 +64,7 @@ const handleGetDashboardData = async (req, res) => {
         totalDirectTeam: {
           leftDirectTeam: 0,
           rightDirectTeam: 0
-        },
-        
-        
-
+        }
       });
     }
 
@@ -94,12 +91,11 @@ const handleGetDashboardData = async (req, res) => {
     }
 
     const myTotalBV = bvPoints.totalBV.leftBV + bvPoints.totalBV.rightBV;
-    const directSalesBouns = bvPoints.weeklyEarnings.directSalesBouns;
-    
+
     const totalDirectBV = {
       leftDirectBV: bvPoints.directBV.leftBV,
       rightDirectBV: bvPoints.directBV.rightBV,
-      total: bvPoints.directBV.leftBV + bvPoints.directBV.rightBV || 0
+      total: bvPoints.directBV.leftBV + bvPoints.directBV.rightBV
     }
 
     const totalDirectTeam = {
@@ -120,7 +116,6 @@ const handleGetDashboardData = async (req, res) => {
       myTotalBV,
       totalDirectBV,
       totalDirectTeam,
-      directSalesBouns
     });
 
   } catch (error) {
@@ -162,6 +157,7 @@ async function calculateDirectRightTeam(rootuser, rcvdSponsorId) {
 
   return count;
 }
+
 
 
 

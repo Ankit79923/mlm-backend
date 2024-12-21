@@ -7,6 +7,7 @@ const { generateToken } = require('../middlewares/jwt');
 const client = require('../config/redis');
 const FranchiseOrder = require('../models/franchise-models/franchiseOrders');
 const UserOrder = require('../models/user-models/userOrders');
+const generateUniquePupId = require('../utils/generateUniquePupId');
 // const userOrders = require('../models/user-models/userOrders');
 // const { default: orders } = require('razorpay/dist/types/orders');
 // const Razorpay = require('razorpay');
@@ -24,6 +25,16 @@ const handleCreateFranchise = async (req, res) => {
             return res.status(400).json({ message: 'Franchise already exists with this email.' });
         }
 
+        // Generate unique franchise ID
+
+        let generateFranchiseID = await generateUniquePupId();
+        // Check if any franchise ID exists in the database
+
+        // const franchise = await Franchise.findOne({franchiseId: generateFranchiseID});
+        // if(!franchise){
+        //     res.status(404).json({message: 'Invalid franchise ID'});
+        // }
+
         // Check if the franchise contactInfo already exists
         const contactNumber = await Franchise.findOne({ contactInfo });
         if (contactNumber) {
@@ -32,6 +43,7 @@ const handleCreateFranchise = async (req, res) => {
 
         // Create a new franchise
         const newFranchise = await Franchise.create({
+            franchiseId: generateFranchiseID,
             franchiseName,
             email,
             password: password, // Store hashed password
@@ -48,7 +60,6 @@ const handleCreateFranchise = async (req, res) => {
         return res.status(500).json({ message: 'Server error', error: error.message });
     }
 }
-
 
 
 
@@ -506,7 +517,7 @@ const handleLoginFranchise = async (req, res) => {
         if (isPasswordMatch) {
             const payload = { email: franchise.email, id: franchise._id, role: 'franchise' };
             const token = generateToken(payload);
-            return res.json({ token, userId: franchise._id, name: franchise.franchiseName, franchiseId: franchise.franchiseId });
+            return res.json({ token, userId: franchise._id, email: franchise.email, contactno: franchise.contactInfo,  name: franchise.franchiseName, franchiseId: franchise.franchiseId });
         } else {
             return res.status(404).json({ message: 'Invalid franchiseId or password.' });
         }
