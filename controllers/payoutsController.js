@@ -66,7 +66,8 @@ const handleGetDashboardData = async (req, res) => {
           rightDirectTeam: 0
         },
         directSalesBonus,
-        teamSalesBonus
+        teamSalesBonus,
+        totalPersonalBVPoints
       });
     }
 
@@ -113,6 +114,8 @@ const handleGetDashboardData = async (req, res) => {
       rightDirectTeam: await calculateDirectRightTeam(user, user.mySponsorId)
     }
 
+    const totalPersonalBVPoints = bvPoints ? bvPoints.personalBV : 0;
+
     // Return the calculated earnings and tree user counts
     return res.status(200).json({
       activeDate,
@@ -127,7 +130,8 @@ const handleGetDashboardData = async (req, res) => {
       totalDirectBV,
       totalDirectTeam,
       directSalesBonus,
-      teamSalesBonus
+      teamSalesBonus,
+      totalPersonalBVPoints
     });
 
   } catch (error) {
