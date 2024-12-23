@@ -605,104 +605,124 @@ async function handleSearchSpecificUser(req, res) {
     }
 }
 
+async function handleAllUser(req, res) {
+    try {
+    const users = await User.find({})
+        if (!users) { return res.status(404).json({ message: 'User not found' }); }
+        res.status(200).json(users);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+}
 
 
 
-// // 9. Edit user details API
-// async function handleEditUserDetails(req, res) {
-//     try{
-//         const {
-//             sponsorId,  
-//             registrationType, 
-//             gender, 
-//             name, 
-//             dob,
-//             mobileNumber,
-//             whatsappNumber, 
-//             email,
-//             state,
-//             district,
-//             pincode,
-//             address,
-//             gstNumber, // optional
-//             password // optional (only if the user wants to update password)
-//         } = req.body;
 
-//         // Find user
-//         let user = await User.findOne({ mySponsorId: sponsorId });
-//         if (!user) { return res.status(404).json({ message: 'User Account not found' }); }
-
-//         // Update the user with new data
-//         user.registrationType = registrationType || user.registrationType;
-//         user.gender = gender || user.gender;
-//         user.name = name || user.name;
-//         user.dob = dob || user.dob;
-//         user.mobileNumber = mobileNumber || user.mobileNumber;
-//         user.whatsappNumber = whatsappNumber || user.whatsappNumber;
-//         user.email = email || user.email;
-//         user.state = state || user.state;
-//         user.district = district || user.district;
-//         user.pincode = pincode || user.pincode;
-//         user.address = address || user.address;
-//         user.gstNumber = gstNumber || user.gstNumber;
-
-//         // If password is provided, update the password
-//         if (password) {
-//             user.password = await user.hashPassword(password);
-//         }
-
-//         // Check if the provided mobile number already exists in the database
-//         const existingMobileNumber = await User.findOne({ mobileNumber: user.mobileNumber });
-//         if (existingMobileNumber && existingMobileNumber._id.toString()!== user._id.toString()) {
-//             return res.status(409).json({ message: 'Mobile number already exists' });
-//         }
-
-//         // Check if the provided email already exists in the database
-//         const existingEmail = await User.findOne({ email: user.email });
-//         if (existingEmail && existingEmail._id.toString()!== user._id.toString()) {
-//             return res.status(409).json({ message: 'Email already exists' });
-//         }
-
-//         // Check if the provided whatsapp number already exists in the database
-//         const existingWhatsappNumber = await User.findOne({ whatsappNumber: 1 });
+async function handleUserbyitsid(req, res) {
+    try {
+        // Find sponsor
+        const sponsor = await User.findOne({ mySponsorId: req.params.id });
+        if (!sponsor) {
+            return res.status(404).json({ message: 'User not found' });
+        }
         
-//         // Check if the provided email already exists in the database
-//         const existingEmail = await User.findOne({ email: user.email });
-//         if (existingEmail && existingEmail._id.toString()!== user._id.toString()) {
-//             return res.status(409).json({ message: 'Email already exists' });
-//         }
+        return res.status(200).json(sponsor);
 
-//         // Check if the provided whatsapp number already exists in the database
-//         const existingWhatsappNumber = await User.findOne({ whatsappNumber: user.whatsappNumber });
-//         if (existingWhatsappNumber && existingWhatsappNumber._id.toString()!== user._id.toString()) {
-//             return res.status(409).json({ message: 'Whatsapp number already exists' });
-//         }
+    } catch (error) {
+        console.error(error);
+        return res.status(500).json({ message: 'Server error', error: error.message });
+    }
+}
+// // 9. Edit user details API
+async function handleEditUserDetails(req, res) {
+    try{
+        const {
+            sponsorId,  
+            registrationType, 
+            gender, 
+            name, 
+            dob,
+            mobileNumber,
+            whatsappNumber, 
+            email,
+            state,
+            district,
+            pincode,
+            address,
+            gstNumber, // optional
+            password // optional (only if the user wants to update password)
+        } = req.body;
 
-//         // Check if the provided GST number already exists in the database
-//         if (gstNumber) {
-//             const existingGSTNumber = await User.findOne({ gstNumber: user.gstNumber });
-//             if (existingGSTNumber && existingGSTNumber._id.toString()!== user._id.toString()) {
-//                 return res.status(409).json({ message: 'GST number already exists' });
-//             }
-//         }
+        // Find user
+        let user = await User.findOne({ mySponsorId: sponsorId });
+        if (!user) { return res.status(404).json({ message: 'User Account not found' }); }
 
-//         // Check if the provided Sponsor ID already exists in the database
-//         const existingSponsor = await User.findOne({ mySponsorId: user.mySponsorId });
-//         if (existingSponsor && existingSponsor._id.toString()!== user._id.toString()) {
-//             return res.status(409).json({ message: 'Sponsor ID already exists' });
-//         }
+        // Update the user with new data
+        user.registrationType = registrationType || user.registrationType;
+        user.gender = gender || user.gender;
+        user.name = name || user.name;
+        user.dob = dob || user.dob;
+        user.mobileNumber = mobileNumber || user.mobileNumber;
+        user.whatsappNumber = whatsappNumber || user.whatsappNumber;
+        user.email = email || user.email;
+        user.state = state || user.state;
+        user.district = district || user.district;
+        user.pincode = pincode || user.pincode;
+        user.address = address || user.address;
+        user.gstNumber = gstNumber || user.gstNumber;
 
-//         // Check if the provided Sponsor ID is valid
-//         if (!isValidSponsorId(user.mySponsorId)) {
-//             return res.status(400).json({});
+        // If password is provided, update the password
+        if (password) {
+            user.password = await user.hashPassword(password);
+        }
 
-//         // Save the updated user
-//         await user.save();
-//         return res.status(200).json({ message: 'User details updated successfully', user });
-//     } catch (error) {
-//         res.status(500).json({ message: 'Error updating user', error: error.message });
-//     }
-// }
+        // Check if the provided mobile number already exists in the database
+        const existingMobileNumber = await User.findOne({ mobileNumber: user.mobileNumber });
+        if (existingMobileNumber && existingMobileNumber._id.toString()!== user._id.toString()) {
+            return res.status(409).json({ message: 'Mobile number already exists' });
+        }
+
+        // Check if the provided email already exists in the database
+        const existingEmail = await User.findOne({ email: user.email });
+        if (existingEmail && existingEmail._id.toString()!== user._id.toString()) {
+            return res.status(409).json({ message: 'Email already exists' });
+        }
+
+        if(email){
+        // Check if the provided email already exists in the database
+        const existingEmail = await User.findOne({ email: user.email });
+        if (existingEmail && existingEmail._id.toString()!== user._id.toString()) {
+            return res.status(409).json({ message: 'Email already exists' });
+        }
+    }
+
+        // Check if the provided whatsapp number already exists in the database
+        const existingWhatsappNumber = await User.findOne({ whatsappNumber: user.whatsappNumber });
+        if (existingWhatsappNumber && existingWhatsappNumber._id.toString()!== user._id.toString()) {
+            return res.status(409).json({ message: 'Whatsapp number already exists' });
+        }
+
+        // Check if the provided GST number already exists in the database
+        if (gstNumber) {
+            const existingGSTNumber = await User.findOne({ gstNumber: user.gstNumber });
+            if (existingGSTNumber && existingGSTNumber._id.toString()!== user._id.toString()) {
+                return res.status(409).json({ message: 'GST number already exists' });
+            }
+        }
+
+        // Check if the provided Sponsor ID already exists in the database
+        
+        // Check if the provided Sponsor ID is valid
+        if (!isValidSponsorId(user.mySponsorId)) {
+            return res.status(400).json({});
+
+    await user.save();
+    return res.status(200).json({ message: 'User details updated successfully', user });
+    }
+ } catch (error) {
+        res.status(500).json({ message: 'Error updating user', error: error.message });
+    }
+}
 
 
 
@@ -719,5 +739,7 @@ module.exports = {
     handleExtremeLeft,
     handleExtremeRight,
     handleGetAllReferrals,
-    handleSearchSpecificUser
+    handleSearchSpecificUser,
+    handleAllUser,
+    handleUserbyitsid
 }
