@@ -519,8 +519,19 @@ const handleGetUserOrdersDeliveredByAdmin = async (req, res) => {
         return res.status(500).json({ message: 'Internal server error', error: err.message });
     }
 }
-
-
+//search product
+const searchproduct = async (req, res) => {
+    try {
+        const query = req.query.q;
+        const products = await Product.find({
+            name: { $regex: query, $options: 'i' } 
+        });
+        return res.status(200).json({ message: 'products fetched successfully', products });
+       
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+  };
 
 module.exports = {
     handleAddProduct,
@@ -534,5 +545,7 @@ module.exports = {
     handleAddProductToCart,
     handleGetMyOrders,
     handleAssignProductsToUsersByAdmin,
-    handleGetUserOrdersDeliveredByAdmin
+    handleGetUserOrdersDeliveredByAdmin,
+    searchproduct
+    
 }

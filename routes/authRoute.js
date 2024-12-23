@@ -2,8 +2,8 @@ const express = require('express');
 const router = express.Router();
 
 
-const {handleRegisterUser, handleLoginUser, handleRegisterUsingLeftLink, handleRegisterUsingRightLink, handleFindUser, handleRegisterFirstUser, handleVerifySponsor } = require('../controllers/authController');
-
+const {handleRegisterUser, handleLoginUser, handleRegisterUsingLeftLink, handleRegisterUsingRightLink, handleFindUser, handleRegisterFirstUser, handleVerifySponsor  } = require('../controllers/authController');
+const { searchproduct } = require('../controllers/productController');
 
 router.post('/registerFirstUser', handleRegisterFirstUser);
 router.post('/register', handleRegisterUser);
@@ -12,7 +12,7 @@ router.post('/registerRight', handleRegisterUsingRightLink);
 router.post('/login', handleLoginUser);
 router.get('/findUser/:id', handleFindUser);            // R
 router.post('/verifySponsor', handleVerifySponsor);     // R
-
+router.get('/searchproduct', searchproduct)
 
 
 module.exports = router;
