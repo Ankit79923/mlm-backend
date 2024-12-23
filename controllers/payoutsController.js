@@ -107,7 +107,7 @@ const handleGetDashboardData = async (req, res) => {
     }
 
     const directSalesMatched = bvPoints.directBV.leftBV + bvPoints.directBV.rightBV;
-    directSalesBonus = directSalesMatched * 0.1;
+    directSalesBonus = Math.round(directSalesMatched * 0.1);
 
     const totalDirectTeam = {
       leftDirectTeam: await calculateDirectLeftTeam(user, user.mySponsorId),
