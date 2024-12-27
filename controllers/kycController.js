@@ -4,20 +4,85 @@ const { s3Client, PutObjectCommand } = require('../utils/s3Bucket');
 
 
 // 1. Submit KYC details
+// const handleSubmitKycDetails = async (req, res) => {
+//   try {
+//     // Get form data from the request body
+//     const { mySponsorId, name, mobileNumber, bankName, branchName, accountNumber, ifscCode, panCard, aadharCard } = req.body;
+
+//     if (!mySponsorId || !name || !mobileNumber || !bankName || !branchName || !accountNumber || !ifscCode || !panCard || !aadharCard) {
+//       return res.status(400).json({ message: 'All fields are required. Please fill all the fields.' });
+//     }
+
+   
+
+
+//     // Upload documents to S3 bucket
+//     const files = req.files;
+//     if (!files || !files.panCardFront || !files.aadharCardFront || !files.aadharCardBack || !files.bankCard) {
+//       return res.status(400).json({ message: 'All document images are required.' });
+//     }
+
+//     const uploadToS3 = async (file, keyPrefix) => {
+//       const params = {
+//         Bucket: 'mlm-assets-bucket',
+//         Key: `${keyPrefix}/${Date.now()}_${file.originalname}`,
+//         Body: file.buffer,
+//         ContentType: file.mimetype,
+//       };
+//       await s3Client.send(new PutObjectCommand(params));
+//       return `https://${params.Bucket}.s3.ap-south-1.amazonaws.com/${params.Key}`;
+//     };
+
+//     // Upload documents to S3
+//     const panCardFrontUrl = await uploadToS3(files.panCardFront[0], 'user-documents');
+//     const aadharCardFrontUrl = await uploadToS3(files.aadharCardFront[0], 'user-documents');
+//     const aadharCardBackUrl = await uploadToS3(files.aadharCardBack[0], 'user-documents');
+//     const bankCardUrl = await uploadToS3(files.bankCard[0], 'user-documents');
+
+//     // Create a new KYC document
+//     const kyc = new KYC({
+//       userDetails: {
+//         mySponsorId,
+//         name,
+//         mobileNumber
+//       },
+//       bankDetaills: {
+//         bankName,
+//         branchName,
+//         accountNumber,
+//         ifscCode,
+//         panCard,
+//         aadharCard
+//       },
+//       documents: {
+//         panCardFront: panCardFrontUrl,
+//         aadharCardFront: aadharCardFrontUrl,
+//         aadharCardBack: aadharCardBackUrl,
+//         bankCard: bankCardUrl,
+//       }
+//     });
+
+//     // Save the document to MongoDB
+//     await kyc.save();
+
+//     // Send success response
+//     res.status(201).json({ message: 'KYC submitted successfully', kyc });
+//   } catch (error) {
+//     console.error(error);
+//     res.status(500).json({ message: 'Server error' });
+//   }
+// };
+
 const handleSubmitKycDetails = async (req, res) => {
   try {
-    // Get form data from the request body
     const { mySponsorId, name, mobileNumber, bankName, branchName, accountNumber, ifscCode, panCard, aadharCard } = req.body;
 
     if (!mySponsorId || !name || !mobileNumber || !bankName || !branchName || !accountNumber || !ifscCode || !panCard || !aadharCard) {
       return res.status(400).json({ message: 'All fields are required. Please fill all the fields.' });
     }
 
-    // Check if the KYC user already exists in the database
-    const existingUser = await KYC.findOne({ 'userDetails.mySponsorId': mySponsorId });
-    if (existingUser) {
-      return res.status(400).json({ message: 'You have already submitted KYC details.' });
-    }
+    // Find the existing KYC document
+    const existingKYC = await KYC.findOne({ 'userDetails.mySponsorId': mySponsorId });
 
     // Upload documents to S3 bucket
     const files = req.files;
@@ -32,49 +97,47 @@ const handleSubmitKycDetails = async (req, res) => {
         Body: file.buffer,
         ContentType: file.mimetype,
       };
-
       await s3Client.send(new PutObjectCommand(params));
       return `https://${params.Bucket}.s3.ap-south-1.amazonaws.com/${params.Key}`;
     };
 
-    // Upload documents to S3
     const panCardFrontUrl = await uploadToS3(files.panCardFront[0], 'user-documents');
     const aadharCardFrontUrl = await uploadToS3(files.aadharCardFront[0], 'user-documents');
     const aadharCardBackUrl = await uploadToS3(files.aadharCardBack[0], 'user-documents');
     const bankCardUrl = await uploadToS3(files.bankCard[0], 'user-documents');
 
-
-    // Create a new KYC document
-    const kyc = new KYC({
-      userDetails: {
-        mySponsorId,
-        name,
-        mobileNumber
-      },
-      bankDetaills: {
-        bankName,
-        branchName,
-        accountNumber,
-        ifscCode,
-        panCard,
-        aadharCard
-      },
-      documents: {
+    if (existingKYC) {
+      // Update the existing KYC document
+      existingKYC.userDetails = { mySponsorId, name, mobileNumber };
+      existingKYC.bankDetaills = { bankName, branchName, accountNumber, ifscCode, panCard, aadharCard };
+      existingKYC.documents = {
         panCardFront: panCardFrontUrl,
         aadharCardFront: aadharCardFrontUrl,
         aadharCardBack: aadharCardBackUrl,
         bankCard: bankCardUrl,
-      }
-    });
+      };
+      existingKYC.kycApproved = 'pending'; // Reset approval status to pending
+      await existingKYC.save();
+    } else {
+      // Create a new KYC document
+      const kyc = new KYC({
+        userDetails: { mySponsorId, name, mobileNumber },
+        bankDetaills: { bankName, branchName, accountNumber, ifscCode, panCard, aadharCard },
+        documents: {
+          panCardFront: panCardFrontUrl,
+          aadharCardFront: aadharCardFrontUrl,
+          aadharCardBack: aadharCardBackUrl,
+          bankCard: bankCardUrl,
+        },
+        kycApproved: 'pending',
+      });
+      await kyc.save();
+    }
 
-    // Save the document to MongoDB
-    await kyc.save();
-
-    // Send success response
-    res.status(201).json({ message: 'KYC submitted successfully', kyc });
+    return res.status(201).json({ message: 'KYC submitted successfully.' });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ message: 'Server error' });
+    return res.status(500).json({ message: 'Server error', error: error.message });
   }
 };
 
@@ -135,7 +198,6 @@ const handleGetAllNonVerifiedKycUsers = async (req, res) => {
     return res.status(500).json({ message: 'Server error', error: error.message });
   }
 }
-
 
 // 5. Admin will Get All the verified KYC users
 const handleGetAllVerifiedKycUsers = async (req, res) => {

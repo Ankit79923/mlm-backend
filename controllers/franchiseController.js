@@ -82,7 +82,7 @@ const handleAssignProductsToFranchise = async (req, res) => {
     try {
         const { franchiseId } = req.params;
         const { products } = req.body;
-
+        
         // Find the franchise by franchiseId
         const franchise = await Franchise.findOne({ franchiseId });
         if (!franchise) { return res.status(404).json({ message: 'Incorrect FranchiseID' }); }

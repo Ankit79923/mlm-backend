@@ -5,8 +5,8 @@ const kycSchema = mongoose.Schema({
     userDetails: {
         mySponsorId: {
             type: String,
-            required: true,
-            unique: true
+            required: true
+           
         },
         name: {
             type: String,
