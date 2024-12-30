@@ -27,7 +27,7 @@ const kycSchema = mongoose.Schema({
             required: true
         },
         accountNumber : {
-            type: Number,
+            type: String,
             required: true
         },
         ifscCode : {
@@ -39,7 +39,7 @@ const kycSchema = mongoose.Schema({
             required: true
         },
         aadharCard : {
-            type: Number,
+            type: String,
             required: true
         }
     },
