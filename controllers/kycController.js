@@ -7,7 +7,7 @@ const { s3Client, PutObjectCommand } = require('../utils/s3Bucket');
 // const handleSubmitKycDetails = async (req, res) => {
 //   try {
 //     // Get form data from the request body
-//     const { mySponsorId, name, mobileNumber, bankName, branchName, accountNumber, ifscCode, panCard, aadharCard } = req.body;
+//     const { mySponsorId, name, mobileNumber, bankName, branchoName, accountNumber, ifscCode, panCard, aadharCard } = req.body;
 
 //     if (!mySponsorId || !name || !mobileNumber || !bankName || !branchName || !accountNumber || !ifscCode || !panCard || !aadharCard) {
 //       return res.status(400).json({ message: 'All fields are required. Please fill all the fields.' });
@@ -75,7 +75,7 @@ const { s3Client, PutObjectCommand } = require('../utils/s3Bucket');
 
 const handleSubmitKycDetails = async (req, res) => {
   try {
-    const { mySponsorId, name, mobileNumber, bankName, branchName, accountNumber, ifscCode, panCard, aadharCard } = req.body;
+    const { mySponsorId, name, mobileNumber, bankName, branchName, accountNumber, ifscCode, panCard, aadharCard} = req.body;
 
     if (!mySponsorId || !name || !mobileNumber || !bankName || !branchName || !accountNumber || !ifscCode || !panCard || !aadharCard) {
       return res.status(400).json({ message: 'All fields are required. Please fill all the fields.' });
@@ -86,7 +86,7 @@ const handleSubmitKycDetails = async (req, res) => {
 
     // Upload documents to S3 bucket
     const files = req.files;
-    if (!files || !files.panCardFront || !files.aadharCardFront || !files.aadharCardBack || !files.bankCard) {
+    if (!files || !files.panCardFront || !files.aadharCardFront || !files.aadharCardBack || !files.bankCard || !files.profilephoto) {
       return res.status(400).json({ message: 'All document images are required.' });
     }
 
@@ -105,6 +105,7 @@ const handleSubmitKycDetails = async (req, res) => {
     const aadharCardFrontUrl = await uploadToS3(files.aadharCardFront[0], 'user-documents');
     const aadharCardBackUrl = await uploadToS3(files.aadharCardBack[0], 'user-documents');
     const bankCardUrl = await uploadToS3(files.bankCard[0], 'user-documents');
+    const profilephotoUrl = await uploadToS3(files.profilephoto[0], 'user-documents');
 
     if (existingKYC) {
       // Update the existing KYC document
@@ -115,6 +116,7 @@ const handleSubmitKycDetails = async (req, res) => {
         aadharCardFront: aadharCardFrontUrl,
         aadharCardBack: aadharCardBackUrl,
         bankCard: bankCardUrl,
+        profilephoto: profilephotoUrl,
       };
       existingKYC.kycApproved = 'pending'; // Reset approval status to pending
       await existingKYC.save();
@@ -128,6 +130,7 @@ const handleSubmitKycDetails = async (req, res) => {
           aadharCardFront: aadharCardFrontUrl,
           aadharCardBack: aadharCardBackUrl,
           bankCard: bankCardUrl,
+          profilephoto: profilephotoUrl,
         },
         kycApproved: 'pending',
       });

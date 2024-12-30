@@ -33,7 +33,8 @@ router.post('/submitKycDetails', upload.fields([
     { name: 'panCardFront', maxCount: 1 },
     { name: 'aadharCardFront', maxCount: 1 },
     { name: 'aadharCardBack', maxCount: 1 },
-    { name: 'bankCard', maxCount: 1 }
+    { name: 'bankCard', maxCount: 1 },
+    { name: 'profilephoto', maxCount: 1 }
   ]), 
   handleSubmitKycDetails
 );
