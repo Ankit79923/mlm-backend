@@ -532,6 +532,37 @@ const searchproduct = async (req, res) => {
         res.status(500).json({ message: error.message });
     }
   };
+
+//category wise search product
+const category_product = async (req, res) => {
+    try {
+        const category = req.params.category;
+
+        // If category is empty or undefined, return an error message
+        if (!category || category.trim() === "") {
+            return res.status(400).json({ message: 'Category parameter is required and cannot be empty.' });
+        }
+
+        // Perform a case-insensitive search (trim the category to avoid leading/trailing spaces)
+        const products = await Product.find({
+            category: { $regex: new RegExp(category.trim(), 'i') }
+        });
+
+        if (!products.length) {
+            return res.status(404).json({ message: 'No products found in this category.' });
+        }
+
+        // Return the found products
+        res.status(200).json({ message: 'Products fetched successfully', products: products })
+        
+    } catch (error) {
+        console.error('Error fetching products by category:', error);
+        return res.status(500).json({ message: 'Internal server error' });
+    }
+};
+
+
+
 module.exports = {
     handleAddProduct,
     handleEditProduct,
@@ -545,6 +576,7 @@ module.exports = {
     handleGetMyOrders,
     handleAssignProductsToUsersByAdmin,
     handleGetUserOrdersDeliveredByAdmin,
-    searchproduct
+    searchproduct,
+    category_product,
     
 }

@@ -5,12 +5,13 @@ const productSchema = new mongoose.Schema({
         type: String,
         required: true
     },
+    
     category: {
         type: [{
-            type: String,
-            // enum: ['Electronics', 'Clothing', 'Books', 'Toys', 'Home', 'Other']  // predefined categories
+            type: [String],
+            enum: ['Personal Care', 'Health Care', 'Beauty Care' , 'Home Care' , 'Grocery'], // Add more categories as needed
         }],
-        required: true
+        required: true,
     },
     price: {
         type: Number,
