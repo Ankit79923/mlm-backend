@@ -630,13 +630,13 @@ async function addBvPointsToAncestors(user, totalBvPoints) {
             if (!ancestorBVPoints) {
                 // If BVPoints document doesn't exist, create a new one
                 // Create a new BVPoint Doc only if user is Active.
-                // ancestorBVPoints = new BVPoints({ userId: ancestor._id });
-                if (ancestor.isActive === true) {
-                    ancestorBVPoints = new BVPoints({ userId: ancestor._id });
-                } else if (ancestor.isActive === false) {
-                    currentUser = ancestor;
-                    continue;
-                }
+                ancestorBVPoints = new BVPoints({ userId: ancestor._id });
+                // if (ancestor.isActive === true) {
+                //     ancestorBVPoints = new BVPoints({ userId: ancestor._id });
+                // } else if (ancestor.isActive === false) {
+                //     currentUser = ancestor;
+                //     continue;
+                // }
             }
 
 
