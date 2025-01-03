@@ -231,11 +231,26 @@ const handleGetKYCStatus = async (req, res) => {
   }
 }
 
+// 7. API to get profile photo
+const handlegetprofilephoto = async (req, res) => {
+  const { mySponsorId } = req.body;
+  const myPhoto = await KYC.findOne({'userDetails.mySponsorId': mySponsorId});
+  if (myPhoto) {
+    if( myPhoto.kycApproved === 'verified'){
+      return res.status(200).json({ profilephoto: myPhoto.documents.profilephoto });
+    }
+    return res.status(404).json({ message: 'Photo not verified.' });
+  }
+  return res.status(404).json({ message: 'Photo not found.' });
+  
+}
+
 module.exports = {
   handleSubmitKycDetails,
   handleGetAllNonVerifiedKycUsers,
   handleVerifyKYCDetails,
   handleRejectKYCDetails,
   handleGetAllVerifiedKycUsers,
-  handleGetKYCStatus
+  handleGetKYCStatus,
+  handlegetprofilephoto
 }

@@ -9,12 +9,12 @@ const nodemailer = require('nodemailer');
 //node mailer for sending mail after registration
 const transporter = nodemailer.createTransport({
     // service: 'gmail',
-     host: 'smtp.hostinger.com',            // Replace with your actual SMTP host
+     host: 'email-smtp.us-east-1.amazonaws.com',            // Replace with your actual SMTP host
      port: 465,                                      // Use 587 for TLS or 465 for SSL (verify with your provider)
      secure: true, 
     auth: {
-        user: 'info@myudbhab.in', // Replace with your email
-        pass: 'Sdmk2@2024',  // Replace with your email password or app-specific password
+        user: 'AKIAYZZGTJ7W67TEQ3GJ', // Replace with your email
+        pass: 'BDsTltRO/wAeyKjq7WLc2ipdscnrSV6rYrbKtLnrIwVh',  // Replace with your email password or app-specific password
     },
 });
 
@@ -23,13 +23,18 @@ const transporter = nodemailer.createTransport({
 // Function to send email
 async function sendMail(user) {
     console.log('2. Inside sendMail function');
-    const subject = 'Registration Successful';
+    const subject = 'Welcome to Udbhab Marketing Private Limited! Your Journey Starts Here';
     const html = `
         <p>Dear ${user.name},</p>
-        <p>Congratulations! Your registration was successful.</p>
-        <p><strong>Your User ID:</strong> ${user.mySponsorId}</p>
+        <p>Welcome to Udbhab! We’re excited to have you onboard and look forward to being part of your journey.</p>
+        <p>Here’s your login information to get started:</p>
+        <p><strong>User ID:</strong> ${user.mySponsorId}</p>
         <p>Use this ID to access your account or share it with others as needed.</p>
-        <p>Best regards,<br>MyUdbhav Team</p>
+        <p>Need help?<br/>
+         We’re here for you every step of the way. Contact our support team anytime at support@myudbhab.in or 7980964516.<br/>
+
+        Thank you for choosing Udbhab. Let’s achieve great things together!</p>
+        <p>Best regards,<br>MyUdbhab Team</p>
     `;
     console.log('3. Inside sendMail function',html);
     const mailOptions = {
