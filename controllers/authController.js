@@ -881,8 +881,24 @@ async function handleEditUserDetails(req, res) {
     }
 }
 
-
-
+//10 search user for admin
+const searchuser = async (req, res) => {
+    try {
+        const query = req.query.q;
+        const users = await User.find({
+            $or: [
+                { name: { $regex: query, $options: 'i' } },
+                { mySponsorId: { $regex: query, $options: 'i' } },
+                { email: { $regex: query, $options: 'i' } },
+                { mobileNumber: { $regex: query, $options: 'i' } }
+              ]
+        });
+        return res.status(200).json({ message: 'user fetched successfully', users });
+       
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+  };
 
 module.exports = {
     handleRegisterFirstUser,
@@ -899,5 +915,6 @@ module.exports = {
     handleSearchSpecificUser,
     handleAllUser,
     handleEditUserDetails,
-    handleUserbyitsid
+    handleUserbyitsid,
+    searchuser
 }
