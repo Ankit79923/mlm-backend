@@ -431,7 +431,9 @@ const totalOrdersInMonth = monthlyOrders.length;
             return totalValue; // Return after the loop completes
         };
         const availableStocksValue = await calculateAvailableStocks(inventory);
-        
+        const totalOrders = await UserOrder.countDocuments({
+            'franchiseDetails.franchiseId': franchiseId,
+          });
 
         // Return the dashboard data
 
@@ -439,7 +441,8 @@ const totalOrdersInMonth = monthlyOrders.length;
             totalMonthlySales,
             totalSalesAmount,
             totalOrdersInMonth,
-            availableStocksValue
+            availableStocksValue,
+            totalOrders
             
             
             // inventory: inventory.products
