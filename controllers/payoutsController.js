@@ -70,6 +70,7 @@ const handleGetDashboardData = async (req, res) => {
         directSalesBonus,
         teamSalesBonus,
         totalPersonalBVPoints,
+        rank: "None"
       });
     }
 
@@ -118,6 +119,14 @@ const handleGetDashboardData = async (req, res) => {
     totalPersonalBVPoints = bvPoints.personalBV || 0;
     // const totalPersonalBVPoints = bvPoints ? bvPoints.personalBV : 0;
 
+    // Calculate total BV points
+
+    const totalBVPoints = bvPoints.totalBV.leftBV + bvPoints.totalBV.rightBV;
+
+    // Calculate rank based on total BV points
+
+    const rank = calculateRank(totalBVPoints);
+
     // Return the calculated earnings and tree user counts
     return res.status(200).json({
       activeDate,
@@ -133,7 +142,8 @@ const handleGetDashboardData = async (req, res) => {
       totalDirectTeam,
       directSalesBonus,
       teamSalesBonus,
-      totalPersonalBVPoints
+      totalPersonalBVPoints,
+      rank
     });
 
   } catch (error) {
@@ -141,6 +151,44 @@ const handleGetDashboardData = async (req, res) => {
     res.status(500).json({ message: "Internal server error" });
   }
 };
+
+function calculateRank(totalBVPoints){
+  if(totalBVPoints >= 25000){
+    return "STAR⭐";
+  } else if(totalBVPoints >= 50000){
+    return "Double Star⭐⭐";
+  } else if(totalBVPoints >= 75000){
+    return "Super Star🌟";
+  } else if(totalBVPoints >= 100000){
+    return "Mega Star✨";
+  } else if(totalBVPoints >= 150000){
+    return "Udbhab Bronze Club🥉";
+  } else if(totalBVPoints >= 300000){
+    return "Udbhab Silver Club🥈";
+  } else if(totalBVPoints >= 600000){
+    return "Udbhab Pearl Club🦪";
+  } else if(totalBVPoints >= 1200000){
+    return "Udbhab Gold Club🥇";
+  } else if(totalBVPoints >= 3000000){
+    return "Udbhab Platinum Club";
+  } else if(totalBVPoints >= 3500000){
+    return "Udbhab Diamond Club";
+  } else if(totalBVPoints >= 4500000){
+    return "Udbhab Blue Diamond Club";
+  } else if(totalBVPoints >= 5000000){
+    return "Udbhab White Diamond Club";
+  } else if(totalBVPoints >= 10000000){
+    return "Udbhab Purple Diamond Club";
+  } else if(totalBVPoints >= 20000000){
+    return "Udbhab Royal Diamond Club";
+  } else if(totalBVPoints >= 50000000){
+    return "Udbhab Crown Diamond Club";
+  } else if(totalBVPoints >= 100000000){
+    return "Udbhab Unicorn Diamond Club";
+  } else {
+    return "Independent Distributor";
+  }
+}
 
 // const handleGetDashboardData = async (req, res) => {
 //   try {

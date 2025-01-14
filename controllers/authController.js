@@ -7,16 +7,26 @@ const nodemailer = require('nodemailer');
 
 
 //node mailer for sending mail after registration
-const transporter = nodemailer.createTransport({
+
+    const transporter = nodemailer.createTransport({
+        host: 'smtp.gmail.com',
+        port: 465,
+        secure: true,
+        auth: {
+            user: 'myudbhabmarketing@gmail.com',
+            pass: 'bwrm kwvn eiwq dehl',
+        },
+        logger: true, // Enable logging
+        debug: true,  // Enable debug messages
+    });
     // service: 'gmail',
-     host: 'email-smtp.us-east-1.amazonaws.com',            // Replace with your actual SMTP host
-     port: 465,                                      // Use 587 for TLS or 465 for SSL (verify with your provider)
-     secure: true, 
-    auth: {
-        user: 'AKIAYZZGTJ7W67TEQ3GJ', // Replace with your email
-        pass: 'BDsTltRO/wAeyKjq7WLc2ipdscnrSV6rYrbKtLnrIwVh',  // Replace with your email password or app-specific password
-    },
-});
+    //  host: 'email-smtp.us-east-1.amazonaws.com',            // Replace with your actual SMTP host
+    //  port: 465,                                      // Use 587 for TLS or 465 for SSL (verify with your provider)
+    //  secure: true, 
+    // auth: {
+    //     user: 'AKIAYZZGTJ7W67TEQ3GJ', // Replace with your email
+    //     pass: 'BDsTltRO/wAeyKjq7WLc2ipdscnrSV6rYrbKtLnrIwVh',  // Replace with your email password or app-specific password
+    // },
 
    
 
@@ -38,7 +48,7 @@ async function sendMail(user) {
     `;
     console.log('3. Inside sendMail function',html);
     const mailOptions = {
-        from: 'info@myudbhab.in', // Replace with your email
+        from: 'myudbhabmarketing@gmail.com', // Replace with your email
         to: user.email,
         subject,
         html,
