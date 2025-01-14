@@ -543,7 +543,7 @@ async function handleLoginUser(req, res) {
             const token = generateToken(payload);
             return res.status(200).json({ token, userId: user._id, name: user.name, mySponsorId: user.mySponsorId});
         } else {
-            return res.status(404).json({ message: 'Incorrect sponsorId OR password.' });
+            return res.status(404).json({ message: 'Incorrect userId OR password.' });
         }
     } catch (error) {
         res.status(500).json({ message: error.message });
@@ -839,7 +839,7 @@ async function handleEditUserDetails(req, res) {
             pincode,
             address,
             gstNumber,
-            password
+            
         };
 
         // Validate unique fields
@@ -862,8 +862,15 @@ async function handleEditUserDetails(req, res) {
 
         // Update password if provided
         if (password) {
-            const hashedPassword = await bcrypt.hash(password, 10);
-            user.password = hashedPassword;
+            // const isHashed = /^\$2[ayb]\$.{56}$/.test(password);
+            // if (isHashed) {
+            //     return res.status(400).json({ message: 'Password should not be pre-hashed.' });
+            // }
+
+            // const hashedPassword = await bcrypt.hash(password, 10);
+            // console.log('Hashed password:', hashedPassword);
+            user.password = password;
+            console.log('Password updated',password);
         }
 
         // Validate Sponsor ID if needed
