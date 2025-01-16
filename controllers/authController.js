@@ -2,8 +2,12 @@ const User = require('../models/user-models/users');
 const { findPositionAndAttach, placeInLeftSideOfTree, placeInRightSideOfTree } = require('../utils/placeInBinaryTree');
 const { generateToken, verifyTokenMiddleware } = require('../middlewares/jwt');
 const generateUniqueSponsorID = require('../utils/generateUniqueSponsorId');
-const bcrypt = require('bcrypt');
 const nodemailer = require('nodemailer');
+const jwt = require('jsonwebtoken');
+const secretKey = process.env.JWT_SECRET;
+require('dotenv').config();
+const sendMailforforgot = require('../utils/nodemailer.js');
+
 
 
 //node mailer for sending mail after registration
@@ -917,6 +921,74 @@ const searchuser = async (req, res) => {
     }
   };
 
+
+//11 forgot password for user account
+const handleforgotpassword = async (req, res) => {
+    try {
+        const { email } = req.body;
+        const user = await User.findOne({ email });
+        if (!user) {
+            return res.status(404).json({ error: 'User not found' });
+        };
+
+        // generate JWT token
+        const payload = { email: user.email }
+        const token = jwt.sign(payload, secretKey, { expiresIn: '2h' });
+
+        // send verification email
+        console.log('1. Sending email');
+
+        let response = await sendMailforforgot('forgotPassword', user, token);
+        if (response == 'sent') return res.status(200).json({ success: 'Email sent successfully! Please check your email to forgot your password.' });
+        else if (response == 'error') return res.status(500).send({ error: 'Error in sending verification email.' });
+        else return res.status(500).json({ error: 'Internal Server Error' });
+    } catch (error) {
+        console.log(error.message);
+        res.status(500).json({ error: error.message });
+    }
+};
+const handleVerifyLinkSentOnEmail = async (req, res) => {
+    try {
+        const token = req.query.token;
+        
+        if (!token) return res.status(401).json({ error: 'Link Expired!' });
+
+        const payload = jwt.verify(token, secretKey);
+        if (!payload) return res.status(401).send('Link Expired!');
+
+        const user = await User.findOne({ email: payload.email });
+        if (!user) return res.status(401).json({ message: 'Account not found!' });
+
+        res.status(200).json({ message: 'Email verification successful', user: user });
+    } catch (err) {
+        res.status(401).json({ error: 'Session Expired. Please Login again.' });
+    }
+};
+const handleUpdatePassword = async (req, res) => {
+    try {
+        const { email, password, confirm_password } = req.body;
+
+        const user = await User.findOne({ email });
+        if (!user) return res.status(401).json({ message: 'Account not found!' });
+
+        if (!email || !confirm_password) return res.status(401).json({ message: 'All fields must be filled.' });
+        if (password !== confirm_password) {
+            return res.status(400).json({ message: 'Passwords do not match.' });
+        }
+
+
+        //  const hashedPassword = await bcrypt.hash(password, 10);
+        user.password = password;
+        await user.save();
+
+        res.status(200).json({ message: 'Password updated successfully. Now you can login.', user: user });
+    } catch (err) {
+        console.error(err);
+        res.status(401).json({ error: 'Session Expired. Please Login again.' });
+    }
+};
+
+
 module.exports = {
     handleRegisterFirstUser,
     handleRegisterUser,
@@ -933,5 +1005,10 @@ module.exports = {
     handleAllUser,
     handleEditUserDetails,
     handleUserbyitsid,
-    searchuser
+    searchuser,
+    handleforgotpassword,
+    handleVerifyLinkSentOnEmail,
+    handleUpdatePassword
+
+
 }
