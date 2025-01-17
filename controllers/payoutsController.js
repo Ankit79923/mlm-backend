@@ -119,9 +119,9 @@ const handleGetDashboardData = async (req, res) => {
     totalPersonalBVPoints = bvPoints.personalBV || 0;
     // const totalPersonalBVPoints = bvPoints ? bvPoints.personalBV : 0;
 
-    // Calculate total BV points
+    // Calculate matched BV points
 
-    const totalBVPoints = bvPoints.totalBV.leftBV + bvPoints.totalBV.rightBV;
+    const totalBVPoints = Math.min(bvPoints.totalBV.leftBV, bvPoints.totalBV.rightBV);
 
     // Calculate rank based on total BV points
 
