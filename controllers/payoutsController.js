@@ -70,7 +70,7 @@ const handleGetDashboardData = async (req, res) => {
         directSalesBonus,
         teamSalesBonus,
         totalPersonalBVPoints,
-        rank: "None"
+        rank: "Independent Distributor"
       });
     }
 
@@ -121,7 +121,7 @@ const handleGetDashboardData = async (req, res) => {
 
     // Calculate total BV points
 
-    const totalBVPoints = bvPoints.totalBV.leftBV + bvPoints.totalBV.rightBV;
+    const totalBVPoints = Math.min(bvPoints.totalBV.leftBV, bvPoints.totalBV.rightBV);
 
     // Calculate rank based on total BV points
 

@@ -239,7 +239,7 @@ const handlegetprofilephoto = async (req, res) => {
     if( myPhoto.kycApproved === 'verified'){
       return res.status(200).json({ profilephoto: myPhoto.documents.profilephoto });
     }
-    return res.status(404).json({ message: 'Photo not verified.' });
+   
   }
   return res.status(404).json({ message: 'Photo not found.' });
   
