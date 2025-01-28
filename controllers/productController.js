@@ -562,7 +562,6 @@ const category_product = async (req, res) => {
 };
 
 
-
 module.exports = {
     handleAddProduct,
     handleEditProduct,
