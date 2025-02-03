@@ -522,6 +522,7 @@ const handleGetAllWeeklyEarnings = async (req, res) => {
       );
 
       return {
+        userobjectid : entry.userId._id,
         userId: entry.userId.mySponsorId,
         userName: entry.userId.name || 'N/A', 
         userEmail: entry.userId.email || 'N/A',
@@ -530,6 +531,8 @@ const handleGetAllWeeklyEarnings = async (req, res) => {
           week: earning.week.toISOString().split('T')[0],
           matchedBV: earning.matchedBV,
           payoutAmount: earning.payoutAmount,
+          directSalesBonus : earning.directSalesBonus,
+          teamSalesBonus: earning.teamSalesBonus,
           paymentStatus: earning.paymentStatus,
         })),
       };
