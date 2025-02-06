@@ -89,7 +89,7 @@ const handleSubmitKycDetails = async (req, res) => {
     if (!files || !files.panCardFront || !files.aadharCardFront || !files.aadharCardBack || !files.bankCard || !files.profilephoto) {
       return res.status(400).json({ message: 'All document images are required.' });
     }
-
+   
     const uploadToS3 = async (file, keyPrefix) => {
       const params = {
         Bucket: 'mlm-assets-bucket',
@@ -212,6 +212,17 @@ const handleGetAllVerifiedKycUsers = async (req, res) => {
     return res.status(500).json({ message: 'Server error', error: error.message });
   }
 }
+// get all rejected kyc users
+const handleGetrejectKycUsers = async (req, res) => {
+  try {
+    const users = await KYC.find({ kycApproved: 'rejected' });
+    return res.status(200).json(users);
+  } catch (error) {
+    console.error('Error fetching verified KYC users:', error);
+    return res.status(500).json({ message: 'Server error', error: error.message });
+  }
+}
+
 
 
 // 6. API to get KYC status
@@ -252,5 +263,6 @@ module.exports = {
   handleRejectKYCDetails,
   handleGetAllVerifiedKycUsers,
   handleGetKYCStatus,
-  handlegetprofilephoto
+  handlegetprofilephoto,
+  handleGetrejectKycUsers
 }

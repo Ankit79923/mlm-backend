@@ -5,7 +5,7 @@ const { isAdminMiddleware } = require('../middlewares/jwt');
 const { handleAdminLogin, handleCreateAdmin} = require('../controllers/adminController');
 const { handleAddProduct, handleEditProduct, handleDeleteProduct, handleViewProducts, handleClearAllRedisCache, handleAssignProductsToUsersByAdmin, handleGetUserOrdersDeliveredByAdmin } = require('../controllers/productController');
 const { handleCreateFranchise, handleGetAllFranchises, handleAssignProductsToFranchise, handleGetFranchiesInventory, handleRemoveProductFromFranchiseInventory, handleGetFranchiseOrders } = require('../controllers/franchiseController');   
-const { handleGetAllNonVerifiedKycUsers, handleVerifyKYCDetails, handleRejectKYCDetails, handleGetAllVerifiedKycUsers } = require('../controllers/kycController');
+const { handleGetAllNonVerifiedKycUsers, handleVerifyKYCDetails, handleRejectKYCDetails, handleGetAllVerifiedKycUsers , handleGetrejectKycUsers } = require('../controllers/kycController');
 
 
 // Authentication Routes
@@ -33,6 +33,7 @@ router.post('/user/:mySponsorId/assign-products', handleAssignProductsToUsersByA
 
 
 router.get('/kycVerification/pending', handleGetAllNonVerifiedKycUsers);
+router.get('/kycVerification/rejected', handleGetrejectKycUsers);
 router.get('/kycVerification/approved', handleGetAllVerifiedKycUsers)
 router.post('/approveKycVerification', handleVerifyKYCDetails);
 router.post('/rejectKycVerification', handleRejectKYCDetails);
