@@ -59,7 +59,7 @@ const calculateWeekelyPayout = async () => {
     for (const user of users) {
       // Safely destructure with default values
       const {
-        directBV = {}, totalBV = {}
+        directBV = {}, totalBV = {}, currentWeekBV = {},
       } = user;
 
       const leftBV = Number(directBV.leftBV) || 0;
@@ -68,9 +68,9 @@ const calculateWeekelyPayout = async () => {
       const rightTeamBV = Number(totalBV.rightBV) || 0;
 
       // Calculate bonuses
-      const matchedBonus = leftTeamBV + rightTeamBV;
+      const matchedBonus = leftBV + rightBV;
       const teamSalesBonus = Math.round(matchedBonus * 0.1);
-      const matchedBV = Math.min(leftBV, rightBV);
+      const matchedBV = Math.min(leftTeamBV, rightTeamBV);
       const directSalesBonus = Math.round(matchedBV * 0.1);
       const totalAmount = Math.round(directSalesBonus + teamSalesBonus);
       const tds = Math.round(totalAmount * 0.05); // 5% TDS
@@ -87,10 +87,10 @@ const calculateWeekelyPayout = async () => {
       user.weeklyEarnings.push({
         week: todayDate,
         matchedBV,
-        tds,
         directSalesBonus,
         teamSalesBonus,
         weeklyBV,
+        tds,
         payoutAmount
       });
       user.currentWeekBV.leftBV = leftBV - matchedBV; // Carry forward remaining BV

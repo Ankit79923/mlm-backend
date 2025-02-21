@@ -102,10 +102,10 @@ const handleGetDashboardData = async (req, res) => {
       rightBV: bvPoints.totalBV.rightBV
     }
 
-    const currentBVPoints = {
-      currentLeftBV: bvPoints.currentWeekBV.leftBV,
-      currentRightBV: bvPoints.currentWeekBV.rightBV
-    }
+    // const currentBVPoints = {
+    //   currentLeftBV: bvPoints.currentWeekBV.leftBV,
+    //   currentRightBV: bvPoints.currentWeekBV.rightBV
+    // }
 
     const teamSalesMatched = Math.min(bvPoints.totalBV.leftBV, bvPoints.totalBV.rightBV);
     teamSalesBonus = Math.round(teamSalesMatched * 0.1);
@@ -149,7 +149,6 @@ const handleGetDashboardData = async (req, res) => {
       leftTreeUsersCount,
       rightTreeUsersCount,
       totalBVPointsEarned,
-      currentBVPoints,
       myTotalBV,
       totalDirectBV,
       totalDirectTeam,
