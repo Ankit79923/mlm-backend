@@ -105,7 +105,7 @@ const handleGetDashboardData = async (req, res) => {
       currentRightBV: bvPoints.currentWeekBV.rightBV
     }
 
-    const teamSalesMatched = Math.min(bvPoints.currentWeekBV.leftBV, bvPoints.currentWeekBV.rightBV);
+    const teamSalesMatched = Math.min(bvPoints.totalBV.leftBV, bvPoints.totalBV.rightBV);
     teamSalesBonus = Math.round(teamSalesMatched * 0.1);
 
 
