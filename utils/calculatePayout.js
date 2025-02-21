@@ -17,7 +17,7 @@ const BVPoints = require('../models/user-models/bvPoints');
 //       const { leftBV, rightBV } = user.currentWeekBV;
 //       const {leftTeamBV, rightTeamBV} = user.totalBV;
 
-      
+
 //       const matchedBonus = leftTeamBV + rightTeamBV;
 //       const teamSalesBonus = matchedBonus * 0.1;
 //       // Calculate matched BV & payout
@@ -58,7 +58,9 @@ const calculateWeekelyPayout = async () => {
 
     for (const user of users) {
       // Safely destructure with default values
-      const { currentWeekBV = {}, totalBV = {} } = user;
+      const {
+        currentWeekBV = {}, totalBV = {}
+      } = user;
 
       const leftBV = Number(currentWeekBV.leftBV) || 0;
       const rightBV = Number(currentWeekBV.rightBV) || 0;
@@ -67,10 +69,12 @@ const calculateWeekelyPayout = async () => {
 
       // Calculate bonuses
       const matchedBonus = leftTeamBV + rightTeamBV;
-      const teamSalesBonus = matchedBonus * 0.1;
+      const teamSalesBonus = Math.round(matchedBonus * 0.1);
       const matchedBV = Math.min(leftBV, rightBV);
-      const directSalesBonus = matchedBV * 0.1;
-      const payoutAmount = directSalesBonus + teamSalesBonus;
+      const directSalesBonus = Math.round(matchedBV * 0.1);
+      const totalAmount = Math.round(directSalesBonus + teamSalesBonus);
+      const tds = Math.round(totalAmount * 0.05); // 5% TDS
+      const payoutAmount = Math.round(totalAmount - tds);
       // Calculate weeklyBV
       const weeklyBV = matchedBonus + matchedBV;
       // Handle invalid or NaN values
@@ -83,11 +87,12 @@ const calculateWeekelyPayout = async () => {
       user.weeklyEarnings.push({
         week: todayDate,
         matchedBV,
+        tds,
         directSalesBonus,
         teamSalesBonus,
         weeklyBV,
+        tds,
         payoutAmount
-        
       });
       user.currentWeekBV.leftBV = leftBV - matchedBV; // Carry forward remaining BV
       user.currentWeekBV.rightBV = rightBV - matchedBV; // Carry forward remaining BV
@@ -111,7 +116,7 @@ const calculateWeekelyPayout = async () => {
 //     try {
 //       // Get the today's date
 //       const todayDate = new Date();
-        
+
 //       // Find all users
 //       const users = await BVPoints.find();
 
@@ -144,76 +149,81 @@ const calculateWeekelyPayout = async () => {
 //       console.log('Payout calculated successfully for this month.');  
 //       return true;   
 //     }catch (err) {
-      
+
 //         console.error('Error calculating weekly payout:', err);
 //         return false; // Return failure
-       
+
 //     }
 // }
 const calculateMonthlyPayout = async function () {
   try {
-      // Get today's date
-      const todayDate = new Date();
+    // Get today's date
+    const todayDate = new Date();
 
-      // Find all users
-      const users = await BVPoints.find();
+    // Find all users
+    const users = await BVPoints.find();
 
-      // Iterate through each user and calculate monthly payout
-      for (const user of users) {
-        const { currentWeekBV = {}, totalBV = {} } = user;
+    // Iterate through each user and calculate monthly payout
+    for (const user of users) {
+      const {
+        currentWeekBV = {}, totalBV = {}
+      } = user;
 
-        const leftBV = Number(currentWeekBV.leftBV) || 0;
-        const rightBV = Number(currentWeekBV.rightBV) || 0;
-        const leftTeamBV = Number(totalBV.leftBV) || 0;
-        const rightTeamBV = Number(totalBV.rightBV) || 0;
+      const leftBV = Number(currentWeekBV.leftBV) || 0;
+      const rightBV = Number(currentWeekBV.rightBV) || 0;
+      const leftTeamBV = Number(totalBV.leftBV) || 0;
+      const rightTeamBV = Number(totalBV.rightBV) || 0;
 
-          
-         
 
-          const matchedBonus = Math.min(leftTeamBV, rightTeamBV);
-          const teamSalesBonus = Math.round(matchedBonus * 0.1);
 
-          // Calculate Monthly payoutAmount
-          const matchedBV = leftBV + rightBV; // Calculate total BV
-          const directSalesBonus = matchedBV * 0.1;
 
-          // Make sure the payoutAmount is valid
-          const payoutAmount = Math.round(directSalesBonus + teamSalesBonus);
-          if (isNaN(payoutAmount)) {
-              console.error('Invalid payoutAmount calculation for user:', user.userId);
-              continue; // Skip this user and move to the next one
-          }
+      const matchedBonus = Math.min(leftTeamBV, rightTeamBV);
+      const teamSalesBonus = Math.round(matchedBonus * 0.1);
 
-          // Calculate monthly BV
-          const monthlyBV = matchedBonus + matchedBV;
-          if (isNaN(monthlyBV)) {
-              console.error('Invalid monthlyBV calculation for user:', user.userId);
-              continue; // Skip this user and move to the next one
-          }
+      // Calculate Monthly payoutAmount
+      const matchedBV = leftBV + rightBV; // Calculate total BV
+      const directSalesBonus = matchedBV * 0.1;
 
-          // Create & save new monthly earning entry
-          const newMonthlyEarning = { month: todayDate, payoutAmount };
-          user.monthlyEarnings.push(newMonthlyEarning);
-
-          // Reset user's currentMonthBV
-          user.currentMonthBV.leftBV -= monthlyBV;
-          user.currentMonthBV.rightBV -= monthlyBV;
-
-          // Save the updated user document
-          await user.save();
+      // Make sure the payoutAmount is valid
+      const payoutAmount = Math.round(directSalesBonus + teamSalesBonus);
+      if (isNaN(payoutAmount)) {
+        console.error('Invalid payoutAmount calculation for user:', user.userId);
+        continue; // Skip this user and move to the next one
       }
 
-      console.log('Payout calculated successfully for this month.');
-      return true;
+      // Calculate monthly BV
+      const monthlyBV = matchedBonus + matchedBV;
+      if (isNaN(monthlyBV)) {
+        console.error('Invalid monthlyBV calculation for user:', user.userId);
+        continue; // Skip this user and move to the next one
+      }
+
+      // Create & save new monthly earning entry
+      const newMonthlyEarning = {
+        month: todayDate,
+        payoutAmount
+      };
+      user.monthlyEarnings.push(newMonthlyEarning);
+
+      // Reset user's currentMonthBV
+      user.currentMonthBV.leftBV -= monthlyBV;
+      user.currentMonthBV.rightBV -= monthlyBV;
+
+      // Save the updated user document
+      await user.save();
+    }
+
+    console.log('Payout calculated successfully for this month.');
+    return true;
   } catch (err) {
-      console.error('Error calculating monthly payout:', err);
-      return false;
+    console.error('Error calculating monthly payout:', err);
+    return false;
   }
 }
 
 
 
 module.exports = {
-    calculateWeekelyPayout,
-    calculateMonthlyPayout
+  calculateWeekelyPayout,
+  calculateMonthlyPayout
 };

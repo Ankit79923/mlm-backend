@@ -31,6 +31,7 @@ const bvPointsSchema = new mongoose.Schema({
       directSalesBonus: {type: Number, require: true, default: 0},
       teamSalesBonus: {type: Number, require: true, default: 0},
       weeklyBV: {type: Number, require: true, default: 0},
+      tds: {type: Number, require: true, default: 0},
       payoutAmount: { type: Number, required: true, default: 0},
       paymentStatus: { type: String, enum: ['Pending', 'Paid'], default: 'Pending' },
     }

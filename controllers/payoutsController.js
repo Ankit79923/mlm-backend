@@ -58,6 +58,10 @@ const handleGetDashboardData = async (req, res) => {
           leftBV: 0,
           rightBV: 0
         },
+        currentBVPoints: {
+          currentLeftBV: 0,
+          currentLeftBV: 0
+        },
         myTotalBV: 0,
         totalDirectBV: {
           leftDirectBV: 0,
@@ -96,7 +100,12 @@ const handleGetDashboardData = async (req, res) => {
       rightBV: bvPoints.totalBV.rightBV
     }
 
-    const teamSalesMatched = Math.min(bvPoints.totalBV.leftBV, bvPoints.totalBV.rightBV);
+    const currentBVPoints = {
+      currentLeftBV: bvPoints.currentWeekBV.leftBV,
+      currentRightBV: bvPoints.currentWeekBV.rightBV
+    }
+
+    const teamSalesMatched = Math.min(bvPoints.currentWeekBV.leftBV, bvPoints.currentWeekBV.rightBV);
     teamSalesBonus = Math.round(teamSalesMatched * 0.1);
 
 
@@ -137,6 +146,7 @@ const handleGetDashboardData = async (req, res) => {
       leftTreeUsersCount,
       rightTreeUsersCount,
       totalBVPointsEarned,
+      currentBVPoints,
       myTotalBV,
       totalDirectBV,
       totalDirectTeam,
@@ -530,9 +540,10 @@ const handleGetAllWeeklyEarnings = async (req, res) => {
           _id: earning._id,
           week: earning.week.toISOString().split('T')[0],
           matchedBV: earning.matchedBV,
-          payoutAmount: earning.payoutAmount,
           directSalesBonus : earning.directSalesBonus,
           teamSalesBonus: earning.teamSalesBonus,
+          tds: earning.tds,
+          payoutAmount: earning.payoutAmount,
           paymentStatus: earning.paymentStatus,
         })),
       };
