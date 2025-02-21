@@ -62,8 +62,8 @@ const calculateWeekelyPayout = async () => {
         currentWeekBV = {}, totalBV = {}
       } = user;
 
-      const leftBV = Number(currentWeekBV.leftBV) || 0;
-      const rightBV = Number(currentWeekBV.rightBV) || 0;
+      const leftBV = Number(directBV.leftBV) || 0;
+      const rightBV = Number(directBV.rightBV) || 0;
       const leftTeamBV = Number(totalBV.leftBV) || 0;
       const rightTeamBV = Number(totalBV.rightBV) || 0;
 
