@@ -34,7 +34,7 @@ cron.schedule('0 0 1 * *', () => {
 
 
 // Calculating weekly payouts - on every 5 Minutes
-// cron.schedule('*/5 * * * *', () => { 
-//     console.log('Running function to calculate weekly payout every 5 Minutes'); 
-//     calculateWeekelyPayout(); 
-// }, { scheduled: true, timezone: "IST" });
+cron.schedule('*/5 * * * *', () => { 
+    console.log('Running function to calculate weekly payout every 5 Minutes'); 
+    calculateWeekelyPayout(); 
+}, { scheduled: true, timezone: "IST" });
