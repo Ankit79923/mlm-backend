@@ -59,7 +59,7 @@ const calculateWeekelyPayout = async () => {
     for (const user of users) {
       // Safely destructure with default values
       const {
-        currentWeekBV = {}, totalBV = {}
+        directBV = {}, totalBV = {}
       } = user;
 
       const leftBV = Number(directBV.leftBV) || 0;

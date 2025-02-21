@@ -407,6 +407,7 @@ const handleGetWeeklyPayoutsDetails = async (req, res) => {
         directSalesBonus: earning.directSalesBonus,
         teamSalesBonus: earning.teamSalesBonus,
         weeklyBV: earning.weeklyBV,
+        tds: earning.tds,
         payoutAmount: earning.payoutAmount,
         _id: earning._id,
         paymentStatus: earning.paymentStatus,
