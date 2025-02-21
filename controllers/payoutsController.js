@@ -22,6 +22,7 @@ const handleGetDashboardData = async (req, res) => {
     let lifetimeEarning = 0;
     let directSalesBonus = 0;
     let teamSalesBonus = 0;
+    let totalWeeklyEarnings = 0;
     let totalPersonalBVPoints = 0;
     
     // Consider user as root or head & then find total number of users in left and right tree
@@ -73,6 +74,7 @@ const handleGetDashboardData = async (req, res) => {
         },
         directSalesBonus,
         teamSalesBonus,
+        totalWeeklyEarnings,
         totalPersonalBVPoints,
         rank: "Independent Distributor"
       });
@@ -130,6 +132,7 @@ const handleGetDashboardData = async (req, res) => {
 
     // Calculate matched BV points
 
+    totalWeeklyEarnings = Math.round(directSalesBonus + teamSalesBonus);
     const totalBVPoints = Math.min(bvPoints.totalBV.leftBV, bvPoints.totalBV.rightBV);
 
     // Calculate rank based on total BV points
@@ -152,6 +155,7 @@ const handleGetDashboardData = async (req, res) => {
       totalDirectTeam,
       directSalesBonus,
       teamSalesBonus,
+      totalWeeklyEarnings,
       totalPersonalBVPoints,
       rank
     });
