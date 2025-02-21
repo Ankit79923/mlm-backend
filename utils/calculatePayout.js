@@ -91,7 +91,6 @@ const calculateWeekelyPayout = async () => {
         directSalesBonus,
         teamSalesBonus,
         weeklyBV,
-        tds,
         payoutAmount
       });
       user.currentWeekBV.leftBV = leftBV - matchedBV; // Carry forward remaining BV
