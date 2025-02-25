@@ -49,49 +49,49 @@ const BVPoints = require("../models/user-models/bvPoints");
 //   }
 // };
 
-const calculateWeekelyPayout = async () => {
-  try {
-    const todayDate = new Date();
-    const users = await BVPoints.find(); // Fetch all users with BVPoints
+// const calculateWeekelyPayout = async () => {
+//   try {
+//     const todayDate = new Date();
+//     const users = await BVPoints.find(); // Fetch all users with BVPoints
 
-    for (const user of users) {
-      // Safely destructure with default values
-      const { currentWeekBV = {}, totalBV = {} } = user;
+//     for (const user of users) {
+//       // Safely destructure with default values
+//       const { currentWeekBV = {}, totalBV = {} } = user;
 
-      const leftBV = Number(currentWeekBV.leftBV) || 0;
-      const rightBV = Number(currentWeekBV.rightBV) || 0;
-      const leftTeamBV = Number(totalBV.leftBV) || 0;
-      const rightTeamBV = Number(totalBV.rightBV) || 0;
+//       const leftBV = Number(currentWeekBV.leftBV) || 0;
+//       const rightBV = Number(currentWeekBV.rightBV) || 0;
+//       const leftTeamBV = Number(totalBV.leftBV) || 0;
+//       const rightTeamBV = Number(totalBV.rightBV) || 0;
 
-      // Calculate bonuses
-      const matchedBonus = leftTeamBV + rightTeamBV;
-      const teamSalesBonus = matchedBonus * 0.1;
-      const matchedBV = Math.min(leftBV, rightBV);
-      const directSalesBonus = matchedBV * 0.1;
-      const payoutAmount = directSalesBonus + teamSalesBonus;
-      // Calculate weeklyBV
-      const weeklyBV = matchedBonus + matchedBV;
-      // Handle invalid or NaN values
-      if (isNaN(payoutAmount) || isNaN(teamSalesBonus)) {
-        console.error(`Invalid calculation for user ID: ${user.userId}`);
-        continue; // Skip processing for this user
-      }
+//       // Calculate bonuses
+//       const matchedBonus = leftTeamBV + rightTeamBV;
+//       const teamSalesBonus = matchedBonus * 0.1;
+//       const matchedBV = Math.min(leftBV, rightBV);
+//       const directSalesBonus = matchedBV * 0.1;
+//       const payoutAmount = directSalesBonus + teamSalesBonus;
+//       // Calculate weeklyBV
+//       const weeklyBV = matchedBonus + matchedBV;
+//       // Handle invalid or NaN values
+//       if (isNaN(payoutAmount) || isNaN(teamSalesBonus)) {
+//         console.error(`Invalid calculation for user ID: ${user.userId}`);
+//         continue; // Skip processing for this user
+//       }
 
-      // Save earnings and reset BV
-      user.weeklyEarnings.push({
-        week: todayDate,
-        matchedBV,
-        directSalesBonus,
-        teamSalesBonus,
-        weeklyBV,
-        payoutAmount
+//       // Save earnings and reset BV
+//       user.weeklyEarnings.push({
+//         week: todayDate,
+//         matchedBV,
+//         directSalesBonus,
+//         teamSalesBonus,
+//         weeklyBV,
+//         payoutAmount
         
-      });
-      user.currentWeekBV.leftBV = leftBV - matchedBV; // Carry forward remaining BV
-      user.currentWeekBV.rightBV = rightBV - matchedBV; // Carry forward remaining BV
+//       });
+//       user.currentWeekBV.leftBV = leftBV - matchedBV; // Carry forward remaining BV
+//       user.currentWeekBV.rightBV = rightBV - matchedBV; // Carry forward remaining BV
 
-      await user.save(); // Save the updated user data
-    }
+//       await user.save(); // Save the updated user data
+//     }
 
 //     // Send success response
 //     console.log(`Weekly payout calculated successfully.`);
