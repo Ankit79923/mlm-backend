@@ -162,7 +162,6 @@ const handleGetDashboardData = async (req, res) => {
     res.status(500).json({ message: "Internal server error" });
   }
 };
-
 function calculateRank(totalBVPoints){
   if(totalBVPoints >= 25000){
     return "STAR⭐";
