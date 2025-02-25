@@ -4,6 +4,7 @@ const KYC = require("../models/user-models/kyc");
 const BVPoints = require("../models/user-models/bvPoints");
 const mongoose = require("mongoose");
 const { countLeftChild, countRightChild } = require('../utils/placeInBinaryTree');
+const { calculateWeekelyPayout, calculateMonthlyPayout } = require('../utils/calculatePayout')
 
 
 // 1. Get Dashboard data
@@ -58,6 +59,10 @@ const handleGetDashboardData = async (req, res) => {
           leftBV: 0,
           rightBV: 0
         },
+        currentBVPoints: {
+          currentLeftBV: 0,
+          currentLeftBV: 0
+        },
         myTotalBV: 0,
         totalDirectBV: {
           leftDirectBV: 0,
@@ -95,8 +100,17 @@ const handleGetDashboardData = async (req, res) => {
       leftBV: bvPoints.totalBV.leftBV,
       rightBV: bvPoints.totalBV.rightBV
     }
+    const totalaccumulatedbv ={
+      leftBV: bvPoints.acumulatedBV.leftBV,
+      rightBV: bvPoints.acumulatedBV.rightBV
+    }
 
-    const teamSalesMatched = Math.min(bvPoints.totalBV.leftBV, bvPoints.totalBV.rightBV);
+    const currentBVPoints = {
+      currentLeftBV: bvPoints.currentWeekBV.leftBV,
+      currentRightBV: bvPoints.currentWeekBV.rightBV
+    }
+
+    const teamSalesMatched = Math.min(bvPoints.currentWeekBV.leftBV, bvPoints.currentWeekBV.rightBV);
     teamSalesBonus = Math.round(teamSalesMatched * 0.1);
 
 
@@ -137,6 +151,8 @@ const handleGetDashboardData = async (req, res) => {
       leftTreeUsersCount,
       rightTreeUsersCount,
       totalBVPointsEarned,
+      totalaccumulatedbv,
+      currentBVPoints,
       myTotalBV,
       totalDirectBV,
       totalDirectTeam,
@@ -393,6 +409,7 @@ const handleGetWeeklyPayoutsDetails = async (req, res) => {
         directSalesBonus: earning.directSalesBonus,
         teamSalesBonus: earning.teamSalesBonus,
         weeklyBV: earning.weeklyBV,
+        tds: earning.tds,
         payoutAmount: earning.payoutAmount,
         _id: earning._id,
         paymentStatus: earning.paymentStatus,
@@ -530,9 +547,10 @@ const handleGetAllWeeklyEarnings = async (req, res) => {
           _id: earning._id,
           week: earning.week.toISOString().split('T')[0],
           matchedBV: earning.matchedBV,
-          payoutAmount: earning.payoutAmount,
           directSalesBonus : earning.directSalesBonus,
           teamSalesBonus: earning.teamSalesBonus,
+          tds: earning.tds,
+          payoutAmount: earning.payoutAmount,
           paymentStatus: earning.paymentStatus,
         })),
       };
@@ -577,6 +595,23 @@ const handleGetAllMonthlyEarnings = async (req, res) => {
   }
 }
 
+const handleExecutePayoutForUser = async(req, res) => {
+  const {userId} = req.params;
+
+  try {
+    const weeklyPayoutSuccess = await calculateWeekelyPayout(userId);
+    const monthlyPayoutSuccess = await calculateMonthlyPayout(userId);
+
+    if(weeklyPayoutSuccess && monthlyPayoutSuccess) {
+      return res.status(200).json({success: true, message: "Payout executed successfully"});
+    } else {
+      return res.status(500).json({success: false, message: 'Error executing payout for user:'});
+    }
+  } catch (error) {
+    console.error('Error executing payout for user', error);
+    res.status(500).json({success: false, message: 'Internal server error'});
+  }
+}
 
 module.exports = {
   handleGetDashboardData,
@@ -584,5 +619,7 @@ module.exports = {
   handleGetMonthlyPayoutsDetails,
   handleUpdateWeeklyPayoutStatus,
   handleGetAllWeeklyEarnings,
-  handleGetAllMonthlyEarnings
+  handleGetAllMonthlyEarnings,
+  handleExecutePayoutForUser
+
 };
