@@ -60,10 +60,10 @@ const handleGetDashboardData = async (req, res) => {
           leftBV: 0,
           rightBV: 0
         },
-        currentBVPoints: {
-          currentLeftBV: 0,
-          currentLeftBV: 0
-        },
+        // currentBVPoints: {
+        //   currentLeftBV: 0,
+        //   currentLeftBV: 0
+        // },
         myTotalBV: 0,
         totalDirectBV: {
           leftDirectBV: 0,
@@ -101,6 +101,10 @@ const handleGetDashboardData = async (req, res) => {
     const totalBVPointsEarned = {
       leftBV: bvPoints.totalBV.leftBV,
       rightBV: bvPoints.totalBV.rightBV
+    }
+    const totalaccumulatedbv ={
+      leftBV: bvPoints.acumulatedBV.leftBV,
+      rightBV: bvPoints.acumulatedBV.rightBV
     }
 
     const teamSalesMatched = Math.min(bvPoints.currentWeekBV.leftBV, bvPoints.currentWeekBV.rightBV);
@@ -146,7 +150,7 @@ const handleGetDashboardData = async (req, res) => {
       rightTreeUsersCount,
       totalBVPointsEarned,
       totalaccumulatedbv,
-      currentBVPoints,
+      // currentBVPoints,
       myTotalBV,
       totalDirectBV,
       totalDirectTeam,
