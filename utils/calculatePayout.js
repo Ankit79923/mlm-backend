@@ -166,6 +166,7 @@ const calculateWeekelyPayout = async () => {
     const rightTeamBV = Number(totalBV.rightBV) || 0;
 
     if (leftTeamBV === 0 || rightTeamBV === 0) {
+      
       console.log("Payout is not available");
       continue;
     }

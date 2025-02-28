@@ -137,7 +137,8 @@ const handleGetDashboardData = async (req, res) => {
 
     // Calculate rank based on total BV points
 
-    const rank = calculateRank(totalBVPoints);
+    const rank = calculateRank(totalaccumulatedbv.leftBV, totalaccumulatedbv.rightBV);
+
 
     // Return the calculated earnings and tree user counts
     return res.status(200).json({
@@ -166,39 +167,41 @@ const handleGetDashboardData = async (req, res) => {
     res.status(500).json({ message: "Internal server error" });
   }
 };
-function calculateRank(totalBVPoints){
-  if(totalBVPoints >= 25000){
-    return "STAR⭐";
-  } else if(totalBVPoints >= 50000){
-    return "Double Star⭐⭐";
-  } else if(totalBVPoints >= 75000){
-    return "Super Star🌟";
-  } else if(totalBVPoints >= 100000){
-    return "Mega Star✨";
-  } else if(totalBVPoints >= 150000){
-    return "Udbhab Bronze Club🥉";
-  } else if(totalBVPoints >= 300000){
-    return "Udbhab Silver Club🥈";
-  } else if(totalBVPoints >= 600000){
-    return "Udbhab Pearl Club🦪";
-  } else if(totalBVPoints >= 1200000){
-    return "Udbhab Gold Club🥇";
-  } else if(totalBVPoints >= 3000000){
-    return "Udbhab Platinum Club";
-  } else if(totalBVPoints >= 3500000){
-    return "Udbhab Diamond Club";
-  } else if(totalBVPoints >= 4500000){
-    return "Udbhab Blue Diamond Club";
-  } else if(totalBVPoints >= 5000000){
-    return "Udbhab White Diamond Club";
-  } else if(totalBVPoints >= 10000000){
-    return "Udbhab Purple Diamond Club";
-  } else if(totalBVPoints >= 20000000){
-    return "Udbhab Royal Diamond Club";
-  } else if(totalBVPoints >= 50000000){
-    return "Udbhab Crown Diamond Club";
-  } else if(totalBVPoints >= 100000000){
+function calculateRank(leftBV, rightBV) {
+  const commonBV = Math.min(leftBV, rightBV); // The common BV to determine the rank
+
+  if (commonBV >= 100000000) {
     return "Udbhab Unicorn Diamond Club";
+  } else if (commonBV >= 50000000) {
+    return "Udbhab Crown Diamond Club";
+  } else if (commonBV >= 20000000) {
+    return "Udbhab Royal Diamond Club";
+  } else if (commonBV >= 10000000) {
+    return "Udbhab Purple Diamond Club";
+  } else if (commonBV >= 5000000) {
+    return "Udbhab White Diamond Club";
+  } else if (commonBV >= 4500000) {
+    return "Udbhab Blue Diamond Club";
+  } else if (commonBV >= 3500000) {
+    return "Udbhab Diamond Club";
+  } else if (commonBV >= 3000000) {
+    return "Udbhab Platinum Club";
+  } else if (commonBV >= 1200000) {
+    return "Udbhab Gold Club🥇";
+  } else if (commonBV >= 600000) {
+    return "Udbhab Pearl Club🦪";
+  } else if (commonBV >= 300000) {
+    return "Udbhab Silver Club🥈";
+  } else if (commonBV >= 150000) {
+    return "Udbhab Bronze Club🥉";
+  } else if (commonBV >= 100000) {
+    return "Mega Star✨";
+  } else if (commonBV >= 75000) {
+    return "Super Star🌟";
+  } else if (commonBV >= 50000) {
+    return "Double Star⭐⭐";
+  } else if (commonBV >= 25000) {
+    return "STAR⭐";
   } else {
     return "Independent Distributor";
   }
