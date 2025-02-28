@@ -170,35 +170,35 @@ const handleGetDashboardData = async (req, res) => {
 function calculateRank(leftBV, rightBV) {
   const commonBV = Math.min(leftBV, rightBV); // The common BV to determine the rank
 
-  if (commonBV >= 100000000) {
+  if (commonBV >= 1085000000) {
     return "Udbhab Unicorn Diamond Club";
-  } else if (commonBV >= 50000000) {
+  } else if (commonBV >= 985000000) {
     return "Udbhab Crown Diamond Club";
-  } else if (commonBV >= 20000000) {
+  } else if (commonBV >= 485000000) {
     return "Udbhab Royal Diamond Club";
-  } else if (commonBV >= 10000000) {
+  } else if (commonBV >= 285000000) {
     return "Udbhab Purple Diamond Club";
-  } else if (commonBV >= 5000000) {
+  } else if (commonBV >= 185000000) {
     return "Udbhab White Diamond Club";
-  } else if (commonBV >= 4500000) {
+  } else if (commonBV >= 13500000) {
     return "Udbhab Blue Diamond Club";
-  } else if (commonBV >= 3500000) {
+  } else if (commonBV >= 9000000) {
     return "Udbhab Diamond Club";
-  } else if (commonBV >= 3000000) {
+  } else if (commonBV >= 5500000) {
     return "Udbhab Platinum Club";
-  } else if (commonBV >= 1200000) {
+  } else if (commonBV >= 2500000) {
     return "Udbhab Gold Club🥇";
-  } else if (commonBV >= 600000) {
+  } else if (commonBV >= 1300000) {
     return "Udbhab Pearl Club🦪";
-  } else if (commonBV >= 300000) {
+  } else if (commonBV >= 700000) {
     return "Udbhab Silver Club🥈";
-  } else if (commonBV >= 150000) {
+  } else if (commonBV >= 400000) {
     return "Udbhab Bronze Club🥉";
-  } else if (commonBV >= 100000) {
+  } else if (commonBV >= 250000) {
     return "Mega Star✨";
-  } else if (commonBV >= 75000) {
+  } else if (commonBV >= 150000) {
     return "Super Star🌟";
-  } else if (commonBV >= 50000) {
+  } else if (commonBV >= 75000) {
     return "Double Star⭐⭐";
   } else if (commonBV >= 25000) {
     return "STAR⭐";
