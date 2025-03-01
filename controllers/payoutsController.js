@@ -497,6 +497,40 @@ const handleUpdateWeeklyPayoutStatus = async (req, res) => {
 };
 
 
+//bulk update payout status
+const handleBulkUpdateWeeklyPayoutStatus = async (req, res) => {
+  try {
+    const { userPayouts } = req.body; // Expecting an array of { userId, payoutId }
+
+    if (!userPayouts || !Array.isArray(userPayouts) || userPayouts.length === 0) {
+      return res.status(400).json({ message: "An array of userId and payoutId is required." });
+    }
+
+    const updatedUsers = [];
+
+    for (const { userId, payoutId } of userPayouts) {
+      // Find BVPoints document for each user
+      const bvPoints = await BVPoints.findOne({ userId });
+      if (!bvPoints) continue; // Skip if not found
+
+      const earning = bvPoints.weeklyEarnings.find(e => e._id.toString() === payoutId);
+      if (!earning || earning.paymentStatus === 'Paid') continue; // Skip if already paid
+
+      earning.paymentStatus = 'Paid';
+      await bvPoints.save(); // Save changes for each user
+      updatedUsers.push(userId);
+    }
+
+    if (updatedUsers.length === 0) {
+      return res.status(400).json({ message: "No payouts updated. Either already paid or invalid IDs." });
+    }
+
+    res.status(200).json({ message: "Weekly payouts updated successfully.", updatedUsers });
+  } catch (e) {
+    console.error("Error updating weekly payouts:", e.message);
+    res.status(500).json({ message: "Internal server error", error: e.message });
+  }
+};
 
 // 5. Get all weekly earnings
 // const handleGetAllWeeklyEarnings = async (req, res) => {
@@ -621,6 +655,6 @@ module.exports = {
   handleUpdateWeeklyPayoutStatus,
   handleGetAllWeeklyEarnings,
   handleGetAllMonthlyEarnings,
-  handleExecutePayoutForUser
-
+  handleExecutePayoutForUser,
+  handleBulkUpdateWeeklyPayoutStatus
 };

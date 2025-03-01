@@ -1,6 +1,7 @@
 const Admin = require('../models/admin-models/admin');
 const { generateToken, verifyTokenMiddleware, isAdminMiddleware } = require('../middlewares/jwt');
-
+const User = require('../models/user-models/users');
+const Kyc = require('../models/user-models/kyc');
 
 // Create a new Admin
 async function handleCreateAdmin(req, res) {
@@ -43,6 +44,88 @@ async function handleAdminLogin(req, res) {
         res.status(500).json({ message: error.message });
     }
 }
+//active with kyc
+const activeWithKyc = async (req, res) => {
+    try {
+        const activeUsers = await User.find({ isActive: true }); // Get active users
+        // Extract mySponsorIds of active users
+        const sponsorIds = activeUsers.map(user => user.mySponsorId);
+        // Find verified KYC records that match the active users' mySponsorIds
+        const verifiedKycs = await Kyc.find({
+            "userDetails.mySponsorId": { $in: sponsorIds },
+            kycApproved: "verified"
+        });
+        // Extract mySponsorIds of users who are KYC verified
+        const verifiedSponsorIds = verifiedKycs.map(kyc => kyc.userDetails.mySponsorId);
+        // Filter active users to return only those whose KYC is verified
+        const filteredUsers = activeUsers.filter(user => verifiedSponsorIds.includes(user.mySponsorId));
+        return res.status(200).json(filteredUsers);
+    } catch (error) {
+        console.error('Error fetching active users with verified KYC:', error);
+        return res.status(500).json({ success: false, error: 'Internal server error' });
+    }
+};
+const activeWithNoKyc = async (req, res) => {
+    try {
+        const activeUsers = await User.find({ isActive: true }); // Get active users
+        // Extract mySponsorIds of active users
+        const sponsorIds = activeUsers.map(user => user.mySponsorId);
+        // Find verified KYC records that match the active users' mySponsorIds
+        const verifiedKycs = await Kyc.find({
+            "userDetails.mySponsorId": { $in: sponsorIds },
+            kycApproved: "pending"
+        });
+        // Extract mySponsorIds of users who are KYC verified
+        const verifiedSponsorIds = verifiedKycs.map(kyc => kyc.userDetails.mySponsorId);
+        // Filter active users to return only those whose KYC is verified
+        const filteredUsers = activeUsers.filter(user => verifiedSponsorIds.includes(user.mySponsorId));
+        return res.status(200).json(filteredUsers);
+    } catch (error) {
+        console.error('Error fetching active users with verified KYC:', error);
+        return res.status(500).json({ success: false, error: 'Internal server error' });
+    }
+};
+//inactive with kyc
+const inactiveWithKyc = async (req, res) => {
+    try {
+        const activeUsers = await User.find({ isActive: false }); // Get active users
+        // Extract mySponsorIds of active users
+        const sponsorIds = activeUsers.map(user => user.mySponsorId);
+        // Find verified KYC records that match the active users' mySponsorIds
+        const verifiedKycs = await Kyc.find({
+            "userDetails.mySponsorId": { $in: sponsorIds },
+            kycApproved: "verified"
+        });
+        // Extract mySponsorIds of users who are KYC verified
+        const verifiedSponsorIds = verifiedKycs.map(kyc => kyc.userDetails.mySponsorId);
+        // Filter active users to return only those whose KYC is verified
+        const filteredUsers = activeUsers.filter(user => verifiedSponsorIds.includes(user.mySponsorId));
+        return res.status(200).json(filteredUsers);
+    } catch (error) {
+        console.error('Error fetching active users with verified KYC:', error);
+        return res.status(500).json({ success: false, error: 'Internal server error' });
+    }
+};
+const inactiveWithNoKyc = async (req, res) => {
+    try {
+        const activeUsers = await User.find({ isActive: false }); // Get active users
+        // Extract mySponsorIds of active users
+        const sponsorIds = activeUsers.map(user => user.mySponsorId);
+        // Find verified KYC records that match the active users' mySponsorIds
+        const verifiedKycs = await Kyc.find({
+            "userDetails.mySponsorId": { $in: sponsorIds },
+            kycApproved: "pending"
+        });
+        // Extract mySponsorIds of users who are KYC verified
+        const verifiedSponsorIds = verifiedKycs.map(kyc => kyc.userDetails.mySponsorId);
+        // Filter active users to return only those whose KYC is verified
+        const filteredUsers = activeUsers.filter(user => verifiedSponsorIds.includes(user.mySponsorId));
+        return res.status(200).json(filteredUsers);
+    } catch (error) {
+        console.error('Error fetching active users with verified KYC:', error);
+        return res.status(500).json({ success: false, error: 'Internal server error' });
+    }
+};
 
 
 
@@ -54,5 +137,10 @@ async function handleAdminLogin(req, res) {
 
 module.exports = {
     handleCreateAdmin,
-    handleAdminLogin
+    handleAdminLogin,
+    activeWithKyc,
+    activeWithNoKyc,
+    inactiveWithKyc,
+    inactiveWithNoKyc
+
 }
