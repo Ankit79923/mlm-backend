@@ -2,6 +2,7 @@
 const User = require("../models/user-models/users");
 const KYC = require("../models/user-models/kyc");
 const BVPoints = require("../models/user-models/bvPoints");
+const UserRank = require("../models/user-models/rank-achivers");
 const mongoose = require("mongoose");
 const { countLeftChild, countRightChild } = require('../utils/placeInBinaryTree');
 const { calculateWeekelyPayout, calculateMonthlyPayout } = require('../utils/calculatePayout')
@@ -167,6 +168,68 @@ const handleGetDashboardData = async (req, res) => {
     res.status(500).json({ message: "Internal server error" });
   }
 };
+
+//for rankachiver 
+
+async function updateUserRanks() {
+  try {
+    const users = await BVPoints.find(); // Fetch all users with BV Points
+
+    for (const user of users) {
+        const accumulatedLeftBV = user.acumulatedBV?.leftBV || 0;
+        const accumulatedRightBV = user.acumulatedBV?.rightBV || 0;
+        
+        const rank = calculateRank(accumulatedLeftBV, accumulatedRightBV);
+        
+        // Fetch user details from User model
+        const userDetails = await User.findOne({ _id: user.userId });
+        
+        if (!userDetails) continue; // Skip if user details are not found
+        
+        await UserRank.findOneAndUpdate(
+            { rank: rank },
+             // Find the rank entry
+            {
+                $addToSet: {
+                    users: {
+                        objectId: user._id,
+                        name: userDetails.name,
+                        userId: userDetails.mySponsorId,
+                        achievedAt: new Date()
+                    }
+                }
+            },
+            { upsert: true, new: true }
+        );
+    }
+
+    console.log("User ranks updated successfully.");
+} catch (error) {
+    console.error("Error updating user ranks:", error);
+}
+}
+const allUserRanks = async (req, res) => {
+  try {
+    // Fetch all user ranks with full details
+    const userRanks = await UserRank.find().lean();
+
+    res.json({
+      success: true,
+      data: userRanks,
+    });
+  } catch (error) {
+    console.error("Error fetching user ranks:", error);
+    res.status(500).json({
+      success: false,
+      message: "Error fetching user ranks",
+      error: error.message,
+    });
+  }
+};
+
+
+
+//
 function calculateRank(leftBV, rightBV) {
   const commonBV = Math.min(leftBV, rightBV); // The common BV to determine the rank
 
@@ -656,5 +719,7 @@ module.exports = {
   handleGetAllWeeklyEarnings,
   handleGetAllMonthlyEarnings,
   handleExecutePayoutForUser,
-  handleBulkUpdateWeeklyPayoutStatus
+  handleBulkUpdateWeeklyPayoutStatus,
+  updateUserRanks,
+  allUserRanks
 };

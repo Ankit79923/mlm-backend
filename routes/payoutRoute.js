@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 
-const { handleGetWeeklyPayoutsDetails, handleGetMonthlyPayoutsDetails, handleUpdateWeeklyPayoutStatus, handleGetAllWeeklyEarnings, handleGetAllMonthlyEarnings , handleBulkUpdateWeeklyPayoutStatus } = require('../controllers/payoutsController');
+const { handleGetWeeklyPayoutsDetails, handleGetMonthlyPayoutsDetails, handleUpdateWeeklyPayoutStatus, handleGetAllWeeklyEarnings, handleGetAllMonthlyEarnings , handleBulkUpdateWeeklyPayoutStatus , updateUserRanks  , allUserRanks} = require('../controllers/payoutsController');
 const { calculateWeekelyPayout } = require('../utils/calculatePayout');
 
 router.get('/weekly/:id', handleGetWeeklyPayoutsDetails);
@@ -17,8 +17,8 @@ router.get('/all-monthly-earnings', handleGetAllMonthlyEarnings);
 // Test weekly calculation
 
 router.get('/test-weekly-payout', calculateWeekelyPayout);
-
-
+router.get('/rankachivers',updateUserRanks);
+router.get('/allUserRanks',allUserRanks);
 
 
 module.exports = router;
