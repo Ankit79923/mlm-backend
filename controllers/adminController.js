@@ -2,7 +2,8 @@ const Admin = require('../models/admin-models/admin');
 const { generateToken, verifyTokenMiddleware, isAdminMiddleware } = require('../middlewares/jwt');
 const User = require('../models/user-models/users');
 const Kyc = require('../models/user-models/kyc');
-
+const UserOrder = require('../models/user-models/userOrders');
+const moment = require('moment');
 // Create a new Admin
 async function handleCreateAdmin(req, res) {
     try {
@@ -123,7 +124,80 @@ const inactiveWithNoKyc = async (req, res) => {
     }
 };
 
+const activeuser = async (req, res) => {
+    // try {
+    //     const activeUsers = await User.find({ isActive: true }); 
+    //     return res.status(200).json(activeUsers);
+    try {
+        const activeUsers = await User.find({ isActive: true });
 
+        const usersWithLastOrderDate = await Promise.all(activeUsers.map(async (user) => {
+            const lastOrder = await UserOrder.findOne({ 'userDetails.user': user._id })
+                .sort({ 'orderDetails.orderDate': -1 })
+                .select('orderDetails.orderDate');
+            
+            return {
+                ...user.toObject(),
+                lastOrderDate: lastOrder ? new Date(lastOrder.orderDetails.orderDate).toISOString().split('T')[0] : null,
+            };
+        }));
+
+        return res.status(200).json(usersWithLastOrderDate);
+    } catch (error) {
+        console.error('Error fetching active users :', error);
+        return res.status(500).json({ success: false, error: 'Internal server error' });
+    }
+};
+////ORDERS AMOUNT TODAY, WEEKLY,MONTHLY
+const calculatePurchaseStats = async (req, res) => {
+    try {
+        const today = moment().startOf("day"); // Start of today
+        const startOfWeek = moment().startOf("week"); // Start of the current week (Sunday)
+        const startOfMonth = moment().startOf("month"); // Start of the current month
+        console.log("Fetching orders for daily, weekly, monthly, and total calculations...");
+        // Fetch orders for today
+        const dailyOrders = await UserOrder.find({
+            "orderDetails.orderDate": { $gte: today.toDate() },
+        });
+        // Fetch orders for this week
+        const weeklyOrders = await UserOrder.find({
+            "orderDetails.orderDate": { $gte: startOfWeek.toDate() },
+        });
+        // Fetch orders for this month
+        const monthlyOrders = await UserOrder.find({
+            "orderDetails.orderDate": { $gte: startOfMonth.toDate() },
+        });
+        // Fetch all-time total orders
+        const totalOrders = await UserOrder.find();
+        // Calculate totalAmount for each period
+        const calculateTotalAmount = (orders) =>
+            orders.reduce((sum, order) => sum + order.orderDetails.totalAmount, 0);
+        const dailyTotal = calculateTotalAmount(dailyOrders);
+        const weeklyTotal = calculateTotalAmount(weeklyOrders);
+        const monthlyTotal = calculateTotalAmount(monthlyOrders);
+        const overallTotal = calculateTotalAmount(totalOrders);
+        // Console logs for debugging
+        console.log(`Daily Total (${today.format("YYYY-MM-DD")}): ${dailyTotal}`);
+        console.log(`Weekly Total (from ${startOfWeek.format("YYYY-MM-DD")}): ${weeklyTotal}`);
+        console.log(`Monthly Total (from ${startOfMonth.format("YYYY-MM-DD")}): ${monthlyTotal}`);
+        console.log(`Overall Total: ${overallTotal}`);
+        // Check for empty orders
+        if (dailyOrders.length === 0) console.log("No purchases made today.");
+        if (weeklyOrders.length === 0) console.log("No purchases made this week.");
+        if (monthlyOrders.length === 0) console.log("No purchases made this month.");
+        if (totalOrders.length === 0) console.log("No purchases recorded.");
+        res.json({
+            success: true,
+            dailyTotal,
+            weeklyTotal,
+            monthlyTotal,
+            overallTotal,
+        });
+    } catch (error) {
+        console.error("Error calculating purchases:", error);
+        res.status(500).json({ success: false, message: "Server error" });
+    }
+};
 
 
 
@@ -137,6 +211,8 @@ module.exports = {
     activeWithKyc,
     activeWithNoKyc,
     inactiveWithKyc,
-    inactiveWithNoKyc
+    inactiveWithNoKyc,
+    activeuser,
+    calculatePurchaseStats
 
 }

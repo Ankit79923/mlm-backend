@@ -9,6 +9,8 @@ const {
   activeWithNoKyc,
   inactiveWithKyc,
   inactiveWithNoKyc,
+  activeuser,
+  calculatePurchaseStats
 } = require("../controllers/adminController");
 const {
   handleAddProduct,
@@ -89,5 +91,6 @@ router.get('/active-kyc-users', activeWithKyc);
 router.get('/active-nokyc-users', activeWithNoKyc);
 router.get('/inactive-kyc-users', inactiveWithKyc);
 router.get('/inactive-nokyc-users', inactiveWithNoKyc);
-
+router.get('/active-users', activeuser);
+router.get('/purchase-stats', calculatePurchaseStats);
 module.exports = router;

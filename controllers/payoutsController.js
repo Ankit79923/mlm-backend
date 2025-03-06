@@ -211,7 +211,7 @@ async function updateUserRanks() {
 const allUserRanks = async (req, res) => {
   try {
     // Fetch all user ranks with full details
-    const userRanks = await UserRank.find().lean();
+    const userRanks = await UserRank.find()
 
     res.json({
       success: true,
@@ -227,6 +227,78 @@ const allUserRanks = async (req, res) => {
   }
 };
 
+//particular one user rank
+const getUserRankStatus = async (req, res) => {
+  try {
+    const { userId } = req.params; // Get userId from request params
+
+    // Find the rank where the user exists in the users array
+    const userrank = await UserRank.findOne({ "users.userId": userId });
+
+    if (!userrank) {
+      return res.status(404).json({ success: false, message: "User rank not found" });
+    }
+    // Find the specific user within the rank's users array
+    const user = userrank.users.find(user => user.userId === userId);
+    if (!user) {
+      return res.status(404).json({ success: false, message: "User not found in rank" });
+    }
+    console.log(user);
+    res.status(200).json({
+      success: true,
+      rank: userrank.rank,
+      user: {
+        isclaimed: user.isclaimed,
+      }
+    });
+
+  } catch (error) {
+    console.error("Error fetching user rank status:", error);
+    res.status(500).json({
+      success: false,
+      message: "Error fetching user rank status",
+      error: error.message,
+    });
+  }
+};
+
+////////
+//rank achievers claim status
+const rankclaimstatus = async (req, res) => {
+  try {
+    const { rankId, userId } = req.params;
+    
+    // Find the rank achiever document
+    const rankAchiever = await UserRank.findById(rankId);
+    if (!rankAchiever) {
+      return res.status(404).json({ success: false, message: 'Rank Achiever not found' });
+    }
+
+    // Find the specific user within the rank achiever's users array
+    const user = rankAchiever.users.find(user => user.userId === userId);
+    if (!user) {
+      return res.status(404).json({ success: false, message: 'User not found' });
+    }
+
+    if (user.isclaimed) {
+      return res.status(400).json({ success: false, message: 'Reward already claimed' });
+    }
+
+    // Update claim status
+    user.isclaimed = true;
+    
+    // Mark the users array as modified
+    rankAchiever.markModified('users');
+    
+    // Save the updated document
+    await rankAchiever.save();
+
+    return res.status(200).json({ success: true, message: 'Reward claimed successfully', rankAchiever });
+  } catch (error) {
+    console.error("Error in rank claim API:", error);
+    return res.status(500).json({ success: false, message: 'Server error', error: error.message });
+  }
+};
 
 
 //
@@ -269,141 +341,6 @@ function calculateRank(leftBV, rightBV) {
     return "Independent Distributor";
   }
 }
-
-// const handleGetDashboardData = async (req, res) => {
-//   try {
-//     // Find user from received sponsorId
-//     const user = await User.findOne({ mySponsorId: req.body.sponsorId });
-//     console.log(user);
-//     if (!user) {
-//       return res.status(404).json({ message: 'Incorrect sponsorId' });
-//     }
-
-//     // Initialize earnings variables
-//     let weeklyEarning = 0;
-//     let monthlyEarning = 0;
-//     let lifetimeEarning = 0;
-//     let directSalesBonus = 0;
-//     let teamSalesBonus = 0;
-//     let totalPersonalBVPoints = 0;
-    
-//     // Consider user as root or head & then find total number of users in left and right tree
-//     let leftTreeUsersCount = await countLeftChild(user);
-//     let rightTreeUsersCount = await countRightChild(user);
-
-//     // Handle activeDate when it is null
-//     // const activeDate = user.activeDate ? user.activeDate.toISOString().split('T')[0] : "Not active";
-//     const activeDate = user.isActive ? "Active" : "Inactive";
-//     let kycStatus;
-
-//     // Fetch KYC status from the KYC document for the given userId
-//     const kyc = await KYC.findOne({ 'userDetails.mySponsorId': user.mySponsorId });
-//     if (kyc) {
-//       kycStatus = kyc.kycApproved;
-//     } else {
-//       kycStatus = "KYC Details not submitted.";
-//     }
-
-
-//     // Fetch the BVPoints document for the given userId
-//     const bvPoints = await BVPoints.findOne({ userId: user._id });
-//     if (!bvPoints) {
-//       // Return 0 earnings if bvPoints is not available
-//       return res.status(200).json({
-//         activeDate,
-//         kycStatus,
-//         weeklyEarning,
-//         monthlyEarning,
-//         lifetimeEarning,
-//         leftTreeUsersCount,
-//         rightTreeUsersCount,
-//         totalBVPointsEarned: {
-//           leftBV: 0,
-//           rightBV: 0
-//         },
-//         myTotalBV: 0,
-//         totalDirectBV: {
-//           leftDirectBV: 0,
-//           rightDirectBV: 0
-//         },
-//         totalDirectTeam: {
-//           leftDirectTeam: 0,
-//           rightDirectTeam: 0
-//         },
-//         directSalesBonus,
-//         teamSalesBonus,
-//         totalPersonalBVPoints,
-//       });
-//     }
-
-//     // Calculate weekly earnings from the most recent week
-//     if (bvPoints.weeklyEarnings && bvPoints.weeklyEarnings.length > 0) {
-//       const lastWeeklyEarning = bvPoints.weeklyEarnings[bvPoints.weeklyEarnings.length - 1];
-//       weeklyEarning = lastWeeklyEarning.payoutAmount;
-//     }
-
-//     // Calculate monthly earnings from the most recent month
-//     if (bvPoints.monthlyEarnings && bvPoints.monthlyEarnings.length > 0) {
-//       const lastMonthlyEarning = bvPoints.monthlyEarnings[bvPoints.monthlyEarnings.length - 1];
-//       monthlyEarning = lastMonthlyEarning.payoutAmount;
-//     }
-
-//     // Calculate lifetime earnings as the sum of all monthly earnings
-//     if (bvPoints.monthlyEarnings && bvPoints.monthlyEarnings.length > 0) {
-//       lifetimeEarning = bvPoints.monthlyEarnings.reduce((acc, earning) => acc + earning.payoutAmount, 0);
-//     }
-
-//     const totalBVPointsEarned = {
-//       leftBV: bvPoints.totalBV.leftBV,
-//       rightBV: bvPoints.totalBV.rightBV
-//     }
-
-//     const teamSalesMatched = Math.min(bvPoints.totalBV.leftBV, bvPoints.totalBV.rightBV);
-//     teamSalesBonus = Math.round(teamSalesMatched * 0.1);
-
-
-//     const myTotalBV = bvPoints.totalBV.leftBV + bvPoints.totalBV.rightBV;
-
-    
-//     const totalDirectBV = {
-//       leftDirectBV: bvPoints.directBV.leftBV,
-//       rightDirectBV: bvPoints.directBV.rightBV,
-//       total: bvPoints.directBV.leftBV + bvPoints.directBV.rightBV
-//     }
-
-//     const directSalesMatched = bvPoints.directBV.leftBV + bvPoints.directBV.rightBV;
-//     directSalesBonus = Math.round(directSalesMatched * 0.1);
-
-//     const totalDirectTeam = {
-//       leftDirectTeam: await calculateDirectLeftTeam(user, user.mySponsorId),
-//       rightDirectTeam: await calculateDirectRightTeam(user, user.mySponsorId)
-//     }
-//     totalPersonalBVPoints = bvPoints.personalBV || 0;
-//     // const totalPersonalBVPoints = bvPoints ? bvPoints.personalBV : 0;
-
-//     // Return the calculated earnings and tree user counts
-//     return res.status(200).json({
-//       activeDate,
-//       kycStatus,
-//       weeklyEarning,
-//       monthlyEarning,
-//       lifetimeEarning,
-//       leftTreeUsersCount,
-//       rightTreeUsersCount,
-//       totalBVPointsEarned,
-//       myTotalBV,
-//       totalDirectBV,
-//       totalDirectTeam,
-//       directSalesBonus,
-//       teamSalesBonus,
-//       totalPersonalBVPoints
-//     });
-
-//   } catch (error) {
-//     console.error("Error fetching dashboard data:", error);
-//     res.status(500).json({ message: "Internal server error" });
-//   }
-// };
 
 
 
@@ -721,5 +658,7 @@ module.exports = {
   handleExecutePayoutForUser,
   handleBulkUpdateWeeklyPayoutStatus,
   updateUserRanks,
-  allUserRanks
+  allUserRanks,
+  rankclaimstatus,
+  getUserRankStatus
 };

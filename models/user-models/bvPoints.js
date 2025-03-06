@@ -44,12 +44,18 @@ const bvPointsSchema = new mongoose.Schema({
     leftBV: { type: Number, default: 0 },
     rightBV: { type: Number, default: 0 }
   },
-  monthlyEarnings: [ 
-    { 
-      month: {type: Date, required: true}, 
-      payoutAmount: {type: Number, default: 0} 
+  monthlyEarnings: [
+    {
+      month: { type: Date, required: true },
+      payoutAmount: { type: Number, default: 0 },
+      weeklyDetails: [  
+        {
+          week: { type: Date, required: true },
+          payoutAmount: { type: Number, required: true }
+        }
+      ]
     }
-  ]
+  ],
 });
 
 
