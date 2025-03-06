@@ -151,54 +151,74 @@ const activeuser = async (req, res) => {
 ////ORDERS AMOUNT TODAY, WEEKLY,MONTHLY
 const calculatePurchaseStats = async (req, res) => {
     try {
-        const today = moment().startOf("day"); // Start of today
-        const startOfWeek = moment().startOf("week"); // Start of the current week (Sunday)
-        const startOfMonth = moment().startOf("month"); // Start of the current month
-        console.log("Fetching orders for daily, weekly, monthly, and total calculations...");
-        // Fetch orders for today
-        const dailyOrders = await UserOrder.find({
-            "orderDetails.orderDate": { $gte: today.toDate() },
+        const today = moment().startOf("day");
+        console.log("Fetching all orders for purchase statistics...");
+        // Fetch all orders sorted by date
+        const allOrders = await UserOrder.find().sort({ "orderDetails.orderDate": 1 });
+        // Function to format month, week, and day names
+        const formatMonth = (date) => moment(date).format("MMMM YYYY");
+        const formatDay = (date) => moment(date).format("dddd, YYYY-MM-DD");
+        let monthlyStats = {};
+        // Initialize total calculations
+        let dailyTotal = 0, weeklyTotal = 0, monthlyTotal = 0, overallTotal = 0;
+        allOrders.forEach(order => {
+            const orderDate = moment(order.orderDetails.orderDate);
+            const monthKey = formatMonth(orderDate);
+            // Initialize month if not exists
+            if (!monthlyStats[monthKey]) {
+                monthlyStats[monthKey] = {
+                    totalAmount: 0,
+                    weeks: {}
+                };
+            }
+            // Find the correct week (Monday to Sunday)
+            let weekStart = moment(orderDate).startOf("week"); // Monday
+            let weekEnd = moment(weekStart).add(6, "days"); // Sunday
+            // Ensure full week stays in the month it ends in
+            if (weekEnd.month() !== orderDate.month()) {
+                weekStart = moment(weekEnd).startOf("week"); // Adjust to keep whole week in one month
+            }
+            const weekKey = `Week (${weekStart.format("YYYY-MM-DD")} - ${weekEnd.format("YYYY-MM-DD")})`;
+            // Ensure the week belongs only to the current month
+            if (!monthlyStats[monthKey].weeks[weekKey]) {
+                monthlyStats[monthKey].weeks[weekKey] = {
+                    totalAmount: 0,
+                    days: {}
+                };
+                // Initialize all 7 days in the week with 0
+                for (let i = 0; i < 7; i++) {
+                    const dayDate = moment(weekStart).add(i, "days");
+                    const dayKey = formatDay(dayDate);
+                    monthlyStats[monthKey].weeks[weekKey].days[dayKey] = 0;
+                }
+            }
+            // Format day key
+            const dayKey = formatDay(orderDate);
+            // Add totalAmount
+            const totalAmount = order.orderDetails.totalAmount;
+            monthlyStats[monthKey].totalAmount += totalAmount;
+            monthlyStats[monthKey].weeks[weekKey].totalAmount += totalAmount;
+            monthlyStats[monthKey].weeks[weekKey].days[dayKey] += totalAmount;
+            // Aggregate totals
+            overallTotal += totalAmount;
+            if (orderDate.isSame(today, "day")) dailyTotal += totalAmount;
+            if (orderDate.isSame(today, "week")) weeklyTotal += totalAmount;
+            if (orderDate.isSame(today, "month")) monthlyTotal += totalAmount;
         });
-        // Fetch orders for this week
-        const weeklyOrders = await UserOrder.find({
-            "orderDetails.orderDate": { $gte: startOfWeek.toDate() },
-        });
-        // Fetch orders for this month
-        const monthlyOrders = await UserOrder.find({
-            "orderDetails.orderDate": { $gte: startOfMonth.toDate() },
-        });
-        // Fetch all-time total orders
-        const totalOrders = await UserOrder.find();
-        // Calculate totalAmount for each period
-        const calculateTotalAmount = (orders) =>
-            orders.reduce((sum, order) => sum + order.orderDetails.totalAmount, 0);
-        const dailyTotal = calculateTotalAmount(dailyOrders);
-        const weeklyTotal = calculateTotalAmount(weeklyOrders);
-        const monthlyTotal = calculateTotalAmount(monthlyOrders);
-        const overallTotal = calculateTotalAmount(totalOrders);
-        // Console logs for debugging
-        console.log(`Daily Total (${today.format("YYYY-MM-DD")}): ${dailyTotal}`);
-        console.log(`Weekly Total (from ${startOfWeek.format("YYYY-MM-DD")}): ${weeklyTotal}`);
-        console.log(`Monthly Total (from ${startOfMonth.format("YYYY-MM-DD")}): ${monthlyTotal}`);
-        console.log(`Overall Total: ${overallTotal}`);
-        // Check for empty orders
-        if (dailyOrders.length === 0) console.log("No purchases made today.");
-        if (weeklyOrders.length === 0) console.log("No purchases made this week.");
-        if (monthlyOrders.length === 0) console.log("No purchases made this month.");
-        if (totalOrders.length === 0) console.log("No purchases recorded.");
+        console.log("Purchase stats calculated successfully.");
         res.json({
             success: true,
             dailyTotal,
             weeklyTotal,
             monthlyTotal,
             overallTotal,
+            monthlyStats
         });
     } catch (error) {
         console.error("Error calculating purchases:", error);
         res.status(500).json({ success: false, message: "Server error" });
     }
 };
-
 
 
 
