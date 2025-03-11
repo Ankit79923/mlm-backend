@@ -114,7 +114,6 @@ const handleGetDashboardData = async (req, res) => {
 
     const myTotalBV = bvPoints.totalBV.leftBV + bvPoints.totalBV.rightBV;
 
-    
     const totalDirectBV = {
       leftDirectBV: bvPoints.directBV.leftBV,
       rightDirectBV: bvPoints.directBV.rightBV,
@@ -139,8 +138,12 @@ const handleGetDashboardData = async (req, res) => {
     // Calculate rank based on total BV points
 
     const rank = calculateRank(totalaccumulatedbv.leftBV, totalaccumulatedbv.rightBV);
-
-
+    let totalMatchedBV = 0;
+    if (bvPoints && bvPoints.weeklyEarnings && Array.isArray(bvPoints.weeklyEarnings)) {
+      bvPoints.weeklyEarnings.forEach(week => {
+        totalMatchedBV += week.matchedBV || 0; // Sum matchedBV safely
+      });
+    }
     // Return the calculated earnings and tree user counts
     return res.status(200).json({
       activeDate,
@@ -160,6 +163,7 @@ const handleGetDashboardData = async (req, res) => {
       teamSalesBonus,
       totalWeeklyEarnings,
       totalPersonalBVPoints,
+      totalMatchedBV,
       rank
     });
 

@@ -2,95 +2,197 @@ const User = require("../models/user-models/users");
 const BVPoints = require("../models/user-models/bvPoints");
 
 
+// const calculateWeekelyPayout = async () => {
+//   try {
+//     const todayDate = new Date();
+//     // const userId = "676e7a642b5bc486f0c65721";
+
+//     // Fetch user from DB
+//     const users = await BVPoints.find();
+//     for (const user of users) {
+    
+
+//     // Extract or initialize BV data
+//     const { directBV = {}, totalBV = {}, currentWeekBV = {} , acumulatedBV = {} } = user;
+
+//     const directleftBV = Number(directBV.leftBV) || 0;
+//     const directrightBV = Number(directBV.rightBV) || 0;
+//     const leftTeamBV = Number(totalBV.leftBV) || 0;
+//     const rightTeamBV = Number(totalBV.rightBV) || 0;
+
+//     if (leftTeamBV === 0 || rightTeamBV === 0) {
+      
+//       console.log("Payout is not available");
+//       continue;
+//     }
+
+// if(acumulatedBV.leftBV === 0 && acumulatedBV.rightBV === 0){
+//   user.acumulatedBV.leftBV = leftTeamBV;
+//   user.acumulatedBV.rightBV = rightTeamBV;
+// }else{
+//   if (leftTeamBV >= rightTeamBV) {
+//     user.acumulatedBV.rightBV += rightTeamBV;
+//   }else{
+//     user.acumulatedBV.leftBV += leftTeamBV;
+//   }
+// }
+
+
+//   // if(leftTeamBV >= supportiveBV.leftBV){
+//   //   user.acumulatedBV.leftBV += (leftTeamBV - supportiveBV.leftBV);
+//   // }else {
+//   //   user.acumulatedBV.leftBV += (supportiveBV.leftBV - leftTeamBV) ;
+//   // }
+
+//   // if(rightTeamBV >= supportiveBV.rightBV){
+//   //   user.acumulatedBV.rightBV += (rightTeamBV - supportiveBV.rightBV);
+//   // }else {
+//   //   user.acumulatedBV.rightBV += (supportiveBV.rightBV - rightTeamBV) ;
+//   // }
+
+//     let teamSalesBonus = 0; // Declare before use
+
+//     if (leftTeamBV >= rightTeamBV) {
+//       user.currentWeekBV.leftBV = leftTeamBV - rightTeamBV;
+//       user.currentWeekBV.rightBV = 0; // Reset right BV
+//       teamSalesBonus = Math.round(rightTeamBV * 0.1);
+//     } else {
+//       user.currentWeekBV.rightBV = rightTeamBV - leftTeamBV;
+//       user.currentWeekBV.leftBV = 0;
+//       teamSalesBonus = Math.round(leftTeamBV * 0.1);
+//     }
+
+//     // Calculate Direct Sales Bonus
+//     const totalDirectBonus = directleftBV + directrightBV;
+//     const directSalesBonus = Math.round(totalDirectBonus * 0.1);
+//     const totalAmount = directSalesBonus + teamSalesBonus;
+//     const tds = Math.round(totalAmount * 0.05); // 5% TDS
+//     const payoutAmount = Math.round(totalAmount - tds);
+
+//     const matchedBV = Math.min(leftTeamBV, rightTeamBV);
+//     const weeklyBV = totalDirectBonus + matchedBV;
+
+//     // user.acumulatedBV.leftBV = leftTeamBV;
+//     // user.acumulatedBV.rightBV = rightTeamBV;
+//     user.totalBV.leftBV =  currentWeekBV.leftBV ;
+//     user.totalBV.rightBV = currentWeekBV.rightBV ;
+//     // user.currentWeekBV.leftBV = 0;
+//     // user.currentWeekBV.rightBV = 0;
+
+//     user.directBV.leftBV = 0; // Reset direct BV
+//     user.directBV.rightBV = 0; // Reset direct BV
+
+//     console.log("Weekly payout calculated successfully.");
+//     console.log({
+//       todayDate,
+//       teamSalesBonus,
+//       directSalesBonus,
+//       leftBV: user.currentWeekBV.leftBV,
+//       rightBV: user.currentWeekBV.rightBV,
+//       payoutAmount,
+//       matchedBV,
+//       acumulatedBVleftbv: user.acumulatedBV.leftBV,
+//       acumulatedBVrightbv: user.acumulatedBV.rightBV,
+//       totalbvleftbv: user.totalBV.leftBV,
+//       totalbvrightbv: user.totalBV.rightBV,
+//       currentleftbv : user.currentWeekBV.leftBV,
+//       currentrightbv : user.currentWeekBV.rightBV,
+//       directleftBV: user.directBV.leftBV,
+//       directrightBV: user.directBV.rightBV
+        
+//     });
+//     user.weeklyEarnings.push({
+//       week: todayDate,
+//       matchedBV,
+//       directSalesBonus,
+//       teamSalesBonus,
+//       weeklyBV,
+//       tds,
+//       payoutAmount,
+//     });
+//     await user.save();
+//   }
+//     return true;
+//   } catch (err) {
+//     console.error("Error calculating weekly payout:", err);
+//     return false;
+//   }
+// };
+
+
+
+// ------------------------------------------------------------------------//
+
 const calculateWeekelyPayout = async () => {
   try {
     const todayDate = new Date();
     // const userId = "676e7a642b5bc486f0c65721";
-
     // Fetch user from DB
     const users = await BVPoints.find();
     for (const user of users) {
-    
-
     // Extract or initialize BV data
-    const { directBV = {}, totalBV = {}, currentWeekBV = {} , acumulatedBV = {} } = user;
-
+    const { directBV = {}, totalBV = {}, supportiveBV = {} , acumulatedBV = {} } = user;
     const directleftBV = Number(directBV.leftBV) || 0;
     const directrightBV = Number(directBV.rightBV) || 0;
     const leftTeamBV = Number(totalBV.leftBV) || 0;
     const rightTeamBV = Number(totalBV.rightBV) || 0;
-
     if (leftTeamBV === 0 || rightTeamBV === 0) {
-      
       console.log("Payout is not available");
       continue;
     }
-
-  if(leftTeamBV >= currentWeekBV.leftBV){
-    user.acumulatedBV.leftBV += (leftTeamBV - currentWeekBV.leftBV);
+  if(leftTeamBV >= supportiveBV.leftBV){
+    user.acumulatedBV.leftBV += (leftTeamBV - supportiveBV.leftBV);
   }else {
-    user.acumulatedBV.leftBV += (currentWeekBV.leftBV - leftTeamBV) ;
+    user.acumulatedBV.leftBV += (supportiveBV.leftBV - leftTeamBV) ;
   }
-
-  if(rightTeamBV >= currentWeekBV.rightBV){
-    user.acumulatedBV.rightBV += (rightTeamBV - currentWeekBV.rightBV);
+  if(rightTeamBV >= supportiveBV.rightBV){
+    user.acumulatedBV.rightBV += (rightTeamBV - supportiveBV.rightBV);
   }else {
-    user.acumulatedBV.rightBV += (currentWeekBV.rightBV - rightTeamBV) ;
+    user.acumulatedBV.rightBV += (supportiveBV.rightBV - rightTeamBV) ;
   }
-
-
-
     let teamSalesBonus = 0; // Declare before use
-
     if (leftTeamBV >= rightTeamBV) {
-      user.currentWeekBV.leftBV = leftTeamBV - rightTeamBV;
-      user.currentWeekBV.rightBV = 0; // Reset right BV
+      user.supportiveBV.leftBV = leftTeamBV - rightTeamBV;
+      user.supportiveBV.rightBV = 0; // Reset right BV
       teamSalesBonus = Math.round(rightTeamBV * 0.1);
     } else {
-      user.currentWeekBV.rightBV = rightTeamBV - leftTeamBV;
-      user.currentWeekBV.leftBV = 0;
+      user.supportiveBV.rightBV = rightTeamBV - leftTeamBV;
+      user.supportiveBV.leftBV = 0;
       teamSalesBonus = Math.round(leftTeamBV * 0.1);
     }
-
     // Calculate Direct Sales Bonus
-
     const totalDirectBonus = directleftBV + directrightBV;
     const directSalesBonus = Math.round(totalDirectBonus * 0.1);
     const totalAmount = directSalesBonus + teamSalesBonus;
     const tds = Math.round(totalAmount * 0.05); // 5% TDS
     const payoutAmount = Math.round(totalAmount - tds);
-
     const matchedBV = Math.min(leftTeamBV, rightTeamBV);
     const weeklyBV = totalDirectBonus + matchedBV;
-
     // user.acumulatedBV.leftBV = leftTeamBV;
     // user.acumulatedBV.rightBV = rightTeamBV;
-    user.totalBV.leftBV =  currentWeekBV.leftBV ;
-    user.totalBV.rightBV = currentWeekBV.rightBV ;
-    // user.currentWeekBV.leftBV = 0;
-    // user.currentWeekBV.rightBV = 0;
-
+    user.totalBV.leftBV =  supportiveBV.leftBV ;
+    user.totalBV.rightBV = supportiveBV.rightBV ;
+    // user.supportiveBV.leftBV = 0;
+    // user.supportiveBV.rightBV = 0;
     user.directBV.leftBV = 0; // Reset direct BV
     user.directBV.rightBV = 0; // Reset direct BV
-
     console.log("Weekly payout calculated successfully.");
     console.log({
       todayDate,
       teamSalesBonus,
       directSalesBonus,
-      leftBV: user.currentWeekBV.leftBV,
-      rightBV: user.currentWeekBV.rightBV,
+      leftBV: user.supportiveBV.leftBV,
+      rightBV: user.supportiveBV.rightBV,
       payoutAmount,
       matchedBV,
       acumulatedBVleftbv: user.acumulatedBV.leftBV,
       acumulatedBVrightbv: user.acumulatedBV.rightBV,
       totalbvleftbv: user.totalBV.leftBV,
       totalbvrightbv: user.totalBV.rightBV,
-      currentleftbv : user.currentWeekBV.leftBV,
-      currentrightbv : user.currentWeekBV.rightBV,
+      currentleftbv : user.supportiveBV.leftBV,
+      currentrightbv : user.supportiveBV.rightBV,
       directleftBV: user.directBV.leftBV,
       directrightBV: user.directBV.rightBV
-        
     });
     user.weeklyEarnings.push({
       week: todayDate,
@@ -109,6 +211,8 @@ const calculateWeekelyPayout = async () => {
     return false;
   }
 };
+
+
 
 const calculateMonthlyPayout = async () => {
   try {

@@ -538,7 +538,7 @@ const handleLoginFranchise = async (req, res) => {
 // 7. Handle Calculate totall Bill
 const handleCalculateTotalBill = async (req, res) => {
     try {
-        const { userSponsorId, franchiseId, products } = req.body;
+        const { userSponsorId, franchiseId, products , payment } = req.body;
         if (!franchiseId || !products) { return res.status(400).json({ message: 'Please provide both Franchise ID and Products.' }); }
 
         // Find user from sponsorId
@@ -587,7 +587,7 @@ const handleCalculateTotalBill = async (req, res) => {
 
         await addPersonalBVpoints(user, totalBvPoints);
         await addBvPointsToAncestors(user, totalBvPoints);
-        await createUserOrder(user, franchiseId, totalPrice, totalBvPoints, products);
+        await createUserOrder(user, franchiseId, totalPrice, totalBvPoints, products , payment);
         if (user.isActive === false) {
             user.isActive = true;
             user.activeDate = new Date();
@@ -697,7 +697,7 @@ async function checkIfInLeftTree(ancestor, user) {
 
 
 // Function to save order details for franchise
-async function createUserOrder(user, franchiseId, totalPrice, totalBvPoints, products) {
+async function createUserOrder(user, franchiseId, totalPrice, totalBvPoints, products , payment) {
     try {
         // Generate a unique order number
         const orderNumber = await generateUniqueUserOrderNumber();
@@ -735,7 +735,8 @@ async function createUserOrder(user, franchiseId, totalPrice, totalBvPoints, pro
             orderDetails: {
                 orderNumber: orderNumber,
                 totalAmount: totalPrice,
-                totalBVPoints: totalBvPoints
+                totalBVPoints: totalBvPoints,
+                paymentoption: payment
             },
             products: productDetails,
             deliveryMode: 'Pickup Point'

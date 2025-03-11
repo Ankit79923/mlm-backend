@@ -16,6 +16,7 @@ const bvPointsSchema = new mongoose.Schema({
     leftBV : {type: Number, default: 0},
     rightBV : {type: Number, default: 0}
   },
+
   totalBV : {
     leftBV : {type: Number, default: 0},
     rightBV : {type: Number, default: 0}
@@ -25,6 +26,10 @@ const bvPointsSchema = new mongoose.Schema({
     rightBV : {type: Number, default: 0}
   },
   currentWeekBV : {
+    leftBV : {type: Number, default: 0},
+    rightBV : {type: Number, default: 0}
+  },
+  supportiveBV: {
     leftBV : {type: Number, default: 0},
     rightBV : {type: Number, default: 0}
   },

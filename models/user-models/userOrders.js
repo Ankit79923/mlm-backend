@@ -34,6 +34,11 @@ const userOrderSchema = new mongoose.Schema({
     totalBVPoints: {
         type: Number,
         required: true,
+    },
+    paymentoption:{
+      type: String,
+      enum: ['Cash', 'Card' , 'UPI'],
+      required: true
     }
   },
   products: [
