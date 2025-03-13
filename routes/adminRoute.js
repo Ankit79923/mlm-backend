@@ -35,6 +35,8 @@ const {
   handleRejectKYCDetails,
   handleGetAllVerifiedKycUsers,
   handleGetrejectKycUsers,
+  handleEditbankdetails,
+  handleGetVerifiedKycUserById
 } = require("../controllers/kycController");
 
 // Authentication Routes
@@ -85,9 +87,10 @@ router.get("/kycVerification/rejected", handleGetrejectKycUsers);
 router.get("/kycVerification/approved", handleGetAllVerifiedKycUsers);
 router.post("/approveKycVerification", handleVerifyKYCDetails);
 router.post("/rejectKycVerification", handleRejectKYCDetails);
-
+router.post("/editbankdetails/:id", upload.single("bankCard"), handleEditbankdetails);
+router.get("/getVerifiedKycUserById/:id", handleGetVerifiedKycUserById);
 router.get("/createdOrdersForUser", handleGetUserOrdersDeliveredByAdmin);
-router.get('/active-kyc-users', activeWithKyc);
+router.get('/active-kyc-users',  activeWithKyc);
 router.get('/active-nokyc-users', activeWithNoKyc);
 router.get('/inactive-kyc-users', inactiveWithKyc);
 router.get('/inactive-nokyc-users', inactiveWithNoKyc);

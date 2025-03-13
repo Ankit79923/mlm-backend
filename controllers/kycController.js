@@ -256,6 +256,74 @@ const handlegetprofilephoto = async (req, res) => {
   
 }
 
+
+const handleEditbankdetails = async (req, res) => {
+  try {
+    const kyc = await KYC.findById(req.params.id);
+
+    if (!kyc) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    console.log('Request Body:', req.body);
+    console.log('Request File:', req.file);
+
+    // ✅ Update only provided fields (using the correct model field name)
+    const { bankName, accountNumber, branchName, ifscCode } = req.body;
+    
+    if (bankName || accountNumber || branchName || ifscCode) {
+      kyc.bankDetaills.bankName = bankName || kyc.bankDetaills.bankName;
+      kyc.bankDetaills.accountNumber = accountNumber || kyc.bankDetaills.accountNumber;
+      kyc.bankDetaills.branchName = branchName || kyc.bankDetaills.branchName;
+      kyc.bankDetaills.ifscCode = ifscCode || kyc.bankDetaills.ifscCode;
+    }
+
+    // ✅ Handle file upload correctly
+    if (req.file) {
+      const params = {
+        Bucket: 'mlm-assets-bucket', 
+        Key: `user-documents/${Date.now()}_${req.file.originalname}`,
+        Body: req.file.buffer,
+        ContentType: req.file.mimetype,
+      };
+
+      const command = new PutObjectCommand(params);
+      await s3Client.send(command);
+
+      const publicUrl = `https://${params.Bucket}.s3.ap-south-1.amazonaws.com/${params.Key}`;
+      kyc.documents.bankCard = publicUrl;
+    }
+
+    // ✅ Save updated KYC details
+    await kyc.save()
+      .then(() => console.log('KYC updated successfully'))
+      .catch(err => console.error('Save Error:', err));
+
+    return res.status(200).json({ message: 'Bank details updated successfully', kyc });
+
+  } catch (error) {
+    console.error('Error updating KYC:', error);
+    return res.status(500).json({ error: 'Error updating KYC', details: error.message });
+  }
+};
+
+
+//get approved user by id
+const handleGetVerifiedKycUserById = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const user = await KYC.findById(id);
+    
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+    
+    return res.status(200).json(user);
+  } catch (error) {
+    console.error('Error fetching KYC user by ID:', error);
+    return res.status(500).json({ message: 'Server error', error: error.message });
+  }
+};
 module.exports = {
   handleSubmitKycDetails,
   handleGetAllNonVerifiedKycUsers,
@@ -264,5 +332,7 @@ module.exports = {
   handleGetAllVerifiedKycUsers,
   handleGetKYCStatus,
   handlegetprofilephoto,
-  handleGetrejectKycUsers
+  handleGetrejectKycUsers,
+  handleEditbankdetails,
+  handleGetVerifiedKycUserById
 }

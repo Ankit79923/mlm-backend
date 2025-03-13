@@ -5,7 +5,7 @@ const { upload } = require('../middlewares/multer');
 const { generateToken, verifyTokenMiddleware, isAdminMiddleware } = require('../middlewares/jwt');
 const { handleViewProducts, handleGetProductById, handleAddProductsToCart, handleAddProductToWishlist, handleAddProductToCart, handleGetMyOrders } = require('../controllers/productController');
 const { handleGetSponsorChildrens, handleExtremeLeft, handleExtremeRight, handleGetAllReferrals, handleSearchSpecificUser } = require('../controllers/authController');
-const { handleGetDashboardData } = require('../controllers/payoutsController');
+const { handleGetDashboardData , handleGetSponsorBVTree } = require('../controllers/payoutsController');
 const { handleSubmitKycDetails, handleGetKYCStatus , handlegetprofilephoto } = require('../controllers/kycController');
 const { handleGetAllFranchises } = require('../controllers/franchiseController');
 
@@ -41,6 +41,8 @@ router.post('/submitKycDetails', upload.fields([
 router.get('/kyc-status/:mySponsorId', handleGetKYCStatus);
 router.post('/profilephoto', handlegetprofilephoto);
 
+
+router.get('/sponsorBVTree/:id', handleGetSponsorBVTree);
 
 
 

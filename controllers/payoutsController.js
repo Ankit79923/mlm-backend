@@ -3,6 +3,7 @@ const User = require("../models/user-models/users");
 const KYC = require("../models/user-models/kyc");
 const BVPoints = require("../models/user-models/bvPoints");
 const UserRank = require("../models/user-models/rank-achivers");
+const UserOrder = require("../models/user-models/userOrders");
 const mongoose = require("mongoose");
 const { countLeftChild, countRightChild } = require('../utils/placeInBinaryTree');
 const { calculateWeekelyPayout, calculateMonthlyPayout } = require('../utils/calculatePayout')
@@ -172,6 +173,139 @@ const handleGetDashboardData = async (req, res) => {
     res.status(500).json({ message: "Internal server error" });
   }
 };
+
+///////////////////////////////////promotion tour achievement wala bv
+const handleGetSponsorBVTree = async (req, res) => {
+  try {
+    // Find sponsor
+    const sponsor = await User.findOne({ _id: req.params.id });
+    if (!sponsor) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+    // Define time range (custom or default)
+    const startDate = req.query.startDate ? new Date(req.query.startDate) : new Date("2025-02-22T00:00:00.000Z");
+    const endDate = req.query.endDate ? new Date(req.query.endDate) : new Date("2025-03-22T23:59:59.999Z");
+    // Call both APIs in parallel
+    const [treeWithTimeLimit, treeWithoutTimeLimit] = await Promise.all([
+      fetchTimeLimitBV(sponsor, startDate, endDate),
+      fetchBVWithoutTimeLimit(sponsor)
+    ]);
+    // Return response with both results
+    return res.status(200).json({
+      withTimeLimit: treeWithTimeLimit,
+      withoutTimeLimit: treeWithoutTimeLimit
+    });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ message: 'Server error', error: error.message });
+  }
+};
+const fetchTimeLimitBV = async (user, startDate, endDate) => {
+  if (!user) return null; // Base case: If no user, return null
+  // Fetch all orders for this user
+  const allOrders = await UserOrder.find({ "userDetails.user": user._id });
+  //console.log(`\nUser ${user._id} - Total Orders Found: ${allOrders.length}`);
+  // Filter orders within the date range
+  const userOrders = allOrders.filter(order => {
+    const orderDate = new Date(order.orderDetails.orderDate);
+    //console.log(`Order Date: ${orderDate.toISOString()}`); // Log order date
+    return orderDate >= startDate && orderDate <= endDate;
+  });
+  //console.log(`User ${user._id} - Orders in Range (22 Feb - 22 Mar): ${userOrders.length}`);
+  // Calculate total BV points for this user
+  const totalBV = userOrders.reduce((sum, order) => {
+    const bv = order.orderDetails.totalBVPoints || 0; // Ensure it's a number
+    //console.log(`Order ${order._id} - BV: ${bv}`); // Debugging
+    return sum + bv;
+  }, 0);
+  //console.log(`User ${user._id} - Total BV Points: ${totalBV}`);
+  // Create user node
+  const userNode = {
+    _id: user._id,
+    value: user.name,
+    mySponsorId: user.mySponsorId,
+    isActive: user.isActive,
+    totalBV,        // Store total BV points
+    totalBVLeft: 0,  // Initialize left BV sum
+    totalBVRight: 0, // Initialize right BV sum
+    leftChild: null,
+    rightChild: null
+  };
+  // Fetch left child and accumulate left BV
+  if (user.binaryPosition?.left) {
+    const leftChild = await User.findById(user.binaryPosition.left);
+    userNode.leftChild = await fetchTimeLimitBV(leftChild, startDate, endDate);
+    // Accumulate left BV (own + left subtree)
+    userNode.totalBVLeft =
+      (userNode.leftChild?.totalBV || 0) +
+      (userNode.leftChild?.totalBVLeft || 0) +
+      (userNode.leftChild?.totalBVRight || 0);
+  }
+  // Fetch right child and accumulate right BV
+  if (user.binaryPosition?.right) {
+    const rightChild = await User.findById(user.binaryPosition.right);
+    userNode.rightChild = await fetchTimeLimitBV(rightChild, startDate, endDate);
+    // Accumulate right BV (own + right subtree)
+    userNode.totalBVRight =
+      (userNode.rightChild?.totalBV || 0) +
+      (userNode.rightChild?.totalBVLeft || 0) +
+      (userNode.rightChild?.totalBVRight || 0);
+  }
+  // console.log(`User ${user._id} - Left BV: ${userNode.totalBVLeft}, Right BV: ${userNode.totalBVRight}`);
+  return userNode;
+};
+const fetchBVWithoutTimeLimit = async (user) => {
+  if (!user) return null; // Base case: If no user, return null
+  // Fetch all orders for this user (no time filter)
+  const allOrders = await UserOrder.find({ "userDetails.user": user._id });
+  // Calculate total BV points for this user
+  const totalBV = allOrders.reduce((sum, order) => {
+      return sum + (order.orderDetails.totalBVPoints || 0);
+  }, 0);
+  // Initialize BV values
+  let totalBVLeft = 0;
+  let totalBVRight = 0;
+  // Fetch left child and accumulate left BV
+  if (user.binaryPosition?.left) {
+      const leftChild = await User.findById(user.binaryPosition.left);
+      const leftChildNode = await fetchBVWithoutTimeLimit(leftChild);
+      if (leftChildNode) {
+          totalBVLeft = leftChildNode.totalBV + leftChildNode.totalBVLeft + leftChildNode.totalBVRight;
+      }
+  }
+  // Fetch right child and accumulate right BV
+  if (user.binaryPosition?.right) {
+      const rightChild = await User.findById(user.binaryPosition.right);
+      const rightChildNode = await fetchBVWithoutTimeLimit(rightChild);
+      if (rightChildNode) {
+          totalBVRight = rightChildNode.totalBV + rightChildNode.totalBVLeft + rightChildNode.totalBVRight;
+      }
+  }
+  // Return only required fields
+  return {
+      _id: user._id,
+      value: user.name,
+      mySponsorId: user.mySponsorId,
+      isActive: user.isActive,
+      totalBV,
+      totalBVLeft,
+      totalBVRight
+  };
+};
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 //for rankachiver 
 
@@ -664,5 +798,6 @@ module.exports = {
   updateUserRanks,
   allUserRanks,
   rankclaimstatus,
-  getUserRankStatus
+  getUserRankStatus,
+  handleGetSponsorBVTree
 };
