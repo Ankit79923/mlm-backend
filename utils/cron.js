@@ -26,10 +26,10 @@ const { calculateWeekelyPayout, calculateMonthlyPayout } = require('./calculateP
 //     calculateMonthlyPayout(); 
 // }, { scheduled: true, timezone: "IST" });
 
-// cron.schedule('* * * * *', () => { 
-//     console.log('Running function to calculate weekly payout'); 
-//     calculateWeekelyPayout(); 
-// }, { scheduled: true, timezone: "IST" });
+cron.schedule('58 23 * * 5', () => { 
+    console.log('Running function to calculate weekly payout'); 
+    calculateWeekelyPayout(); 
+}, { scheduled: true, timezone: "Asia/Kolkata" });
 
 
 
