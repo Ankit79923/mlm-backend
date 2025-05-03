@@ -61,8 +61,7 @@ const kycSchema = mongoose.Schema({
             required: true
         },
         profilephoto: {
-            type: String, 
-            required: true
+            type: String          
         },
         createdAt: {
             type: Date,

@@ -11,7 +11,7 @@ var sendMail = async function (str, data, token) {
            secure: true,
            auth: {
                user: 'myudbhabmarketing@gmail.com',
-               pass: 'bwrm kwvn eiwq dehl',
+               pass: 'qcnq khqr kqyt tpdf',
            },
            logger: true, // Enable logging
            debug: true,  // Enable debug messages
