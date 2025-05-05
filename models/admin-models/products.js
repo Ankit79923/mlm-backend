@@ -38,6 +38,10 @@ const productSchema = new mongoose.Schema({
         type: Number,
         required: true
     },
+    totalStock: {
+        type: Number,
+        default: 0
+      },
     ingredients: {
         type: String,
         required: true
