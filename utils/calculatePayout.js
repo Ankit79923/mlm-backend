@@ -130,88 +130,112 @@ const calculateWeekelyPayout = async () => {
     // Fetch user from DB
     const users = await BVPoints.find();
     for (const user of users) {
-    // Extract or initialize BV data
-    const { directBV = {}, totalBV = {}, supportiveBV = {} , acumulatedBV = {} } = user;
-    const directleftBV = Number(directBV.leftBV) || 0;
-    const directrightBV = Number(directBV.rightBV) || 0;
-    const leftTeamBV = Number(totalBV.leftBV) || 0;
-    const rightTeamBV = Number(totalBV.rightBV) || 0;
-    if (leftTeamBV === 0 || rightTeamBV === 0) {
-      console.log("Payout is not available");
-      continue;
+      // Extract or initialize BV data
+      const {
+        directBV = {},
+        totalBV = {},
+        supportiveBV = {},
+        acumulatedBV = {},
+      } = user;
+      const directleftBV = Number(directBV.leftBV) || 0;
+      const directrightBV = Number(directBV.rightBV) || 0;
+      const leftTeamBV = Number(totalBV.leftBV) || 0;
+      const rightTeamBV = Number(totalBV.rightBV) || 0;
+      const totalDirectBV = directleftBV + directrightBV;
+      if (leftTeamBV === 0 || rightTeamBV === 0) {
+        if (totalDirectBV === 0) {
+          console.log("Payout is not available");
+          continue;
+        }
+        const directSalesBonus = Math.round(totalDirectBV * 0.1);
+        const tds = Math.round(directSalesBonus * 0.05);
+        const payoutAmount = Math.round(directSalesBonus - tds);
+        user.directBV.leftBV = 0;
+        user.directBV.rightBV = 0;
+        user.weeklyEarnings.push({
+          week: todayDate,
+          matchedBV: 0,
+          directSalesBonus,
+          teamSalesBonus: 0,
+          weeklyBV: totalDirectBV,
+          tds,
+          payoutAmount,
+        });
+        await user.save();
+        console.log('Direct payout calculated successfully');
+        continue;
+      }
+      if (leftTeamBV >= supportiveBV.leftBV) {
+        user.acumulatedBV.leftBV += leftTeamBV - supportiveBV.leftBV;
+      } else {
+        user.acumulatedBV.leftBV += supportiveBV.leftBV - leftTeamBV;
+      }
+      if (rightTeamBV >= supportiveBV.rightBV) {
+        user.acumulatedBV.rightBV += rightTeamBV - supportiveBV.rightBV;
+      } else {
+        user.acumulatedBV.rightBV += supportiveBV.rightBV - rightTeamBV;
+      }
+      let teamSalesBonus = 0; // Declare before use
+      if (leftTeamBV >= rightTeamBV) {
+        user.supportiveBV.leftBV = leftTeamBV - rightTeamBV;
+        user.supportiveBV.rightBV = 0; // Reset right BV
+        teamSalesBonus = Math.round(rightTeamBV * 0.1);
+      } else {
+        user.supportiveBV.rightBV = rightTeamBV - leftTeamBV;
+        user.supportiveBV.leftBV = 0;
+        teamSalesBonus = Math.round(leftTeamBV * 0.1);
+      }
+      // Calculate Direct Sales Bonus
+      const totalDirectBonus = directleftBV + directrightBV;
+      const directSalesBonus = Math.round(totalDirectBonus * 0.1);
+      const totalAmount = directSalesBonus + teamSalesBonus;
+      const tds = Math.round(totalAmount * 0.05); // 5% TDS
+      const payoutAmount = Math.round(totalAmount - tds);
+      const matchedBV = Math.min(leftTeamBV, rightTeamBV);
+      const weeklyBV = totalDirectBonus + matchedBV;
+      // user.acumulatedBV.leftBV = leftTeamBV;
+      // user.acumulatedBV.rightBV = rightTeamBV;
+      user.totalBV.leftBV = supportiveBV.leftBV;
+      user.totalBV.rightBV = supportiveBV.rightBV;
+      // user.supportiveBV.leftBV = 0;
+      // user.supportiveBV.rightBV = 0;
+      user.directBV.leftBV = 0; // Reset direct BV
+      user.directBV.rightBV = 0; // Reset direct BV
+      console.log("Weekly payout calculated successfully.");
+      console.log({
+        todayDate,
+        teamSalesBonus,
+        directSalesBonus,
+        leftBV: user.supportiveBV.leftBV,
+        rightBV: user.supportiveBV.rightBV,
+        payoutAmount,
+        matchedBV,
+        acumulatedBVleftbv: user.acumulatedBV.leftBV,
+        acumulatedBVrightbv: user.acumulatedBV.rightBV,
+        totalbvleftbv: user.totalBV.leftBV,
+        totalbvrightbv: user.totalBV.rightBV,
+        currentleftbv: user.supportiveBV.leftBV,
+        currentrightbv: user.supportiveBV.rightBV,
+        directleftBV: user.directBV.leftBV,
+        directrightBV: user.directBV.rightBV,
+      });
+      user.weeklyEarnings.push({
+        week: todayDate,
+        matchedBV,
+        directSalesBonus,
+        teamSalesBonus,
+        weeklyBV,
+        tds,
+        payoutAmount,
+      });
+      await user.save();
     }
-  if(leftTeamBV >= supportiveBV.leftBV){
-    user.acumulatedBV.leftBV += (leftTeamBV - supportiveBV.leftBV);
-  }else {
-    user.acumulatedBV.leftBV += (supportiveBV.leftBV - leftTeamBV) ;
-  }
-  if(rightTeamBV >= supportiveBV.rightBV){
-    user.acumulatedBV.rightBV += (rightTeamBV - supportiveBV.rightBV);
-  }else {
-    user.acumulatedBV.rightBV += (supportiveBV.rightBV - rightTeamBV) ;
-  }
-    let teamSalesBonus = 0; // Declare before use
-    if (leftTeamBV >= rightTeamBV) {
-      user.supportiveBV.leftBV = leftTeamBV - rightTeamBV;
-      user.supportiveBV.rightBV = 0; // Reset right BV
-      teamSalesBonus = Math.round(rightTeamBV * 0.1);
-    } else {
-      user.supportiveBV.rightBV = rightTeamBV - leftTeamBV;
-      user.supportiveBV.leftBV = 0;
-      teamSalesBonus = Math.round(leftTeamBV * 0.1);
-    }
-    // Calculate Direct Sales Bonus
-    const totalDirectBonus = directleftBV + directrightBV;
-    const directSalesBonus = Math.round(totalDirectBonus * 0.1);
-    const totalAmount = directSalesBonus + teamSalesBonus;
-    const tds = Math.round(totalAmount * 0.05); // 5% TDS
-    const payoutAmount = Math.round(totalAmount - tds);
-    const matchedBV = Math.min(leftTeamBV, rightTeamBV);
-    const weeklyBV = totalDirectBonus + matchedBV;
-    // user.acumulatedBV.leftBV = leftTeamBV;
-    // user.acumulatedBV.rightBV = rightTeamBV;
-    user.totalBV.leftBV =  supportiveBV.leftBV ;
-    user.totalBV.rightBV = supportiveBV.rightBV ;
-    // user.supportiveBV.leftBV = 0;
-    // user.supportiveBV.rightBV = 0;
-    user.directBV.leftBV = 0; // Reset direct BV
-    user.directBV.rightBV = 0; // Reset direct BV
-    console.log("Weekly payout calculated successfully.");
-    console.log({
-      todayDate,
-      teamSalesBonus,
-      directSalesBonus,
-      leftBV: user.supportiveBV.leftBV,
-      rightBV: user.supportiveBV.rightBV,
-      payoutAmount,
-      matchedBV,
-      acumulatedBVleftbv: user.acumulatedBV.leftBV,
-      acumulatedBVrightbv: user.acumulatedBV.rightBV,
-      totalbvleftbv: user.totalBV.leftBV,
-      totalbvrightbv: user.totalBV.rightBV,
-      currentleftbv : user.supportiveBV.leftBV,
-      currentrightbv : user.supportiveBV.rightBV,
-      directleftBV: user.directBV.leftBV,
-      directrightBV: user.directBV.rightBV
-    });
-    user.weeklyEarnings.push({
-      week: todayDate,
-      matchedBV,
-      directSalesBonus,
-      teamSalesBonus,
-      weeklyBV,
-      tds,
-      payoutAmount,
-    });
-    await user.save();
-  }
     return true;
   } catch (err) {
     console.error("Error calculating weekly payout:", err);
     return false;
   }
 };
-
 
 
 const calculateMonthlyPayout = async () => {
