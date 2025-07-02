@@ -42,6 +42,14 @@ const productSchema = new mongoose.Schema({
         type: Number,
         default: 0
       },
+      sellprice:{
+        type: Number,
+        default: 0
+      },
+      gst:{
+        type: Number,
+        default: 0
+      },
     ingredients: {
         type: String,
         required: true
